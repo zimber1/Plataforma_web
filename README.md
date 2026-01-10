@@ -2,13 +2,13 @@
 
 Repositorio en equipo del proyecto de la materia **Desarrollo Web Profesional**.
 
----
+<hr style="border:0.5px solid #eee">
 
 ## Condición del proyecto
 
 **Fase:** Definición del proyecto
 
----
+<hr style="border:0.5px solid #eee">
 
 ## Objetivo
 
