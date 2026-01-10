@@ -3,6 +3,12 @@
 Repositorio en equipo del proyecto de la materia **Desarrollo Web Profesional**.
 
 
+<p align="center">
+  <img src="Imagenes/Imagen_1.png" alt="Plataforma Web" width="600"/>
+</p>
+
+
+
 
 ## Condición del proyecto
 
