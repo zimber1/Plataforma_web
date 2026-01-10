@@ -2,19 +2,18 @@
 
 Repositorio en equipo del proyecto de la materia **Desarrollo Web Profesional**.
 
-<hr style="border:0.5px solid #eee">
+
 
 ## Condición del proyecto
 
 **Fase:** Definición del proyecto
 
-<hr style="border:0.5px solid #eee">
 
 ## Objetivo
 
 Definir y desarrollar una solución web para un problema real, siguiendo prácticas básicas de la industria del software.
 
----
+
 
 ## Roles del equipo
 
@@ -24,7 +23,7 @@ Definir y desarrollar una solución web para un problema real, siguiendo prácti
 - **DevOps:** Claudia Espíndola López  
 - **QA:** Jesús Emanuel Vega Medina  
 
----
+
 
 ## Carpeta Investigaciones
 
