@@ -14,6 +14,9 @@ Backend:   GERMAN YAIR MARTINEZ BOLAÑOS
 DevOps:    CLAUDIA ESPÍNDOLA LOPEZ
 QA:        JESUS EMANUEL VEGA MEDINA
 
+#Carpeta investigaciones 
+Se creo la carpeta investigaciones donde cada usuario sube su parte individual de las tareas asi mismo con división de cada actividad.
+
 
 
 
