@@ -1,23 +1,35 @@
-# Plataforma_web
-Repositorio en equipo del proyecto de Desarrollo Web Profesional
+# Plataforma Web
 
-#Condición del Proyecto 
-Fase de definicion del Proyecto 
+Repositorio en equipo del proyecto de la materia **Desarrollo Web Profesional**.
 
 ---
-#Objectivo
-Definir y desarrollar una solución web para un problema real siguiendo practicasde la industria de software 
+
+## Condición del proyecto
+
+**Fase:** Definición del proyecto
+
 ---
 
-#Roles 
-Tech Lead: ARIEL ABIMAEL CHACON HERRERA
-Frontend:  CARLOS ANDRES ARRIAGA MARQUEZ
-Backend:   GERMAN YAIR MARTINEZ BOLAÑOS 
-DevOps:    CLAUDIA ESPÍNDOLA LOPEZ
-QA:        JESUS EMANUEL VEGA MEDINA
+## Objetivo
 
-#Carpeta investigaciones 
-Se creo la carpeta investigaciones donde cada usuario sube su parte individual de las tareas asi mismo con división de cada actividad.
+Definir y desarrollar una solución web para un problema real, siguiendo prácticas básicas de la industria del software.
+
+---
+
+## Roles del equipo
+
+- **Tech Lead:** Ariel Abimael Chacón Herrera  
+- **Frontend:** Carlos Andrés Arriaga Márquez  
+- **Backend:** Germán Yair Martínez Bolaños  
+- **DevOps:** Claudia Espíndola López  
+- **QA:** Jesús Emanuel Vega Medina  
+
+---
+
+## Carpeta Investigaciones
+
+Se creó la carpeta **Investigaciones**, donde cada integrante del equipo sube su parte individual de las tareas, organizada por actividades, como parte del proceso de definición del proyecto.
+
 
 
 
