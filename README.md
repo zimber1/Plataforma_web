@@ -1,7 +1,7 @@
-# Plataforma Web
+# Plataforma Web  
+## PC Game Compatibility Platform
 
-Repositorio en equipo del proyecto de la materia **Desarrollo Web Profesional**.
-
+Repositorio del proyecto en equipo de la materia **Desarrollo Web Profesional**.
 
 <p align="center">
   <img src="Imagenes/Imagen_1.png" alt="Plataforma Web" width="600"/>
@@ -9,31 +9,29 @@ Repositorio en equipo del proyecto de la materia **Desarrollo Web Profesional**.
 
 
 
-
-## Condición del proyecto
-
+### Estado del proyecto
 **Fase:** Definición del proyecto
 
 
-## Objetivo
+### Objetivo
+Desarrollar una aplicación web que permita registrar los componentes de una computadora y consultar la compatibilidad con videojuegos a partir de sus requisitos técnicos.
 
-Definir y desarrollar una solución web para un problema real, siguiendo prácticas básicas de la industria del software.
 
+## Problema identificado
+Los usuarios no siempre conocen si su computadora cumple con los requisitos necesarios para ejecutar un videojuego, lo que puede provocar problemas de rendimiento o compras innecesarias.
 
 
 ## Roles del equipo
-
-- **Tech Lead:** Ariel Abimael Chacón Herrera  
-- **Frontend:** Carlos Andrés Arriaga Márquez  
-- **Backend:** Germán Yair Martínez Bolaños  
-- **DevOps:** Claudia Espíndola López  
-- **QA:** Jesús Emanuel Vega Medina  
-
+- **Tech Lead:** Ariel Abimael Chacón Herrera
+- **Frontend:** Carlos Andrés Arriaga Márquez
+- **Backend:** Germán Yair Martínez Bolaños
+- **DevOps:** Claudia Espíndola López
+- **QA:** Jesús Emanuel Vega Medina
 
 
 ## Carpeta Investigaciones
+La carpeta **Investigaciones** contiene los aportes individuales de cada integrante del equipo, organizados por actividades.
 
-Se creó la carpeta **Investigaciones**, donde cada integrante del equipo sube su parte individual de las tareas, organizada por actividades, como parte del proceso de definición del proyecto.
 
 
 
