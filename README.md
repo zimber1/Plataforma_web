@@ -32,6 +32,28 @@ Los usuarios no siempre conocen si su computadora cumple con los requisitos nece
 ## Carpeta Investigaciones
 La carpeta **Investigaciones** contiene los aportes individuales de cada integrante del equipo, organizados por actividades.
 
+## Arquitectura general del sistema
+La plataforma se plantea como una **aplicación web** con una arquitectura cliente-servidor, diseñada desde su fase inicial para ser escalable, mantenible y alineada con prácticas profesionales de desarrollo de software.
+
+- **Frontend:** Interfaz web donde el usuario registra los componentes de su computadora y consulta la compatibilidad con videojuegos.
+- **Backend:** Encargado de la lógica de negocio, análisis de requisitos técnicos y validación de compatibilidad.
+- **Infraestructura (DevOps):** Uso de contenedores Docker para garantizar portabilidad y consistencia entre entornos de desarrollo.
+- **Integración Continua (CI):** Pipeline automatizado con GitHub Actions que valida la correcta construcción del proyecto en cada push.
+
+
+## Docker
+El proyecto cuenta con una configuración de **Docker** que permite ejecutar la aplicación en un entorno aislado y reproducible, facilitando el desarrollo y preparando el sistema para futuras fases de despliegue.
+
+### Archivos principales
+- **Dockerfile:** Define la imagen base y los pasos necesarios para construir el contenedor de la aplicación.
+- **docker-compose.yml:** Permite la ejecución del contenedor y la gestión de servicios de manera sencilla.
+
+### Ejecución local
+Para construir y ejecutar el proyecto localmente se utiliza el siguiente comando:
+
+```bash
+docker compose up -d
+
 
 
 
