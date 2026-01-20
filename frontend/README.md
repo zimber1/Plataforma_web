@@ -35,6 +35,7 @@ frontend/
 ├── package.json      # Configuración de dependencias y scripts
 ├── vite.config.js    # Configuración del motor de compilación
 └── README.md         # Documentación técnica
+  ```
 
 ## 4. Instalación y Configuración
 
