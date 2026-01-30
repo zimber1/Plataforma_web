@@ -64,7 +64,7 @@ jobs:
           docker logs backend-test || true
           docker stop backend-test || true
 
-      - name: Optional: Push to Docker Hub
+      - name: "Optional: Push to Docker Hub"
         if: ${{ secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != '' }}
         run: echo "Docker Hub push will run (if configured)"
 
@@ -76,7 +76,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Docker Hub: tag & push
+      - name: "Docker Hub: tag & push"
         if: ${{ secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_TOKEN != '' }}
         run: |
           GH_IMAGE=ghcr.io/${{ github.repository_owner }}/plataforma-web-backend:${{ github.sha }}
