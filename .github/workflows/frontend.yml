@@ -49,14 +49,12 @@ jobs:
           name: frontend-dist
           path: frontend/dist
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v1
-        with:
-          path: frontend/dist
-
-      - name: Deploy to GitHub Pages
+      - name: Deploy to GitHub Pages (push to gh-pages)
         if: github.ref == 'refs/heads/main'
-        uses: actions/deploy-pages@v1
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: frontend/dist
 
 permissions:
   pages: write
