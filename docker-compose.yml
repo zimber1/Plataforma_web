@@ -1,7 +1,92 @@
 version: "3.9"
 
 services:
-  plataforma_web:
-    build: .
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "3001:3000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - plataforma_net
+
+  api-gateway:
+    image: node:20
+    working_dir: /usr/src/app
+    volumes:
+      - ./backend/api-gateway:/usr/src/app
+      - /usr/src/app/node_modules
+    command: sh -c "npm install --no-audit --no-fund || true && node server.js"
+    ports:
+      - "3002:3000"
+    restart: unless-stopped
+    depends_on:
+      - users-service
+      - catalog-service
+      - reviews-service
+    networks:
+      - plataforma_net
+
+  users-service:
+    image: node:20
+    working_dir: /usr/src/app
+    volumes:
+      - ./backend/users-service:/usr/src/app
+      - /usr/src/app/node_modules
+    command: sh -c "npm install --no-audit --no-fund || true && node index.js"
+    ports:
+      - "3003:3000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+    networks:
+      - plataforma_net
+
+  catalog-service:
+    image: node:20
+    working_dir: /usr/src/app
+    volumes:
+      - ./backend/catalog-service:/usr/src/app
+      - /usr/src/app/node_modules
+    command: sh -c "npm install --no-audit --no-fund || true && node index.js"
+    ports:
+      - "3004:3000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+    networks:
+      - plataforma_net
+
+  reviews-service:
+    image: node:20
+    working_dir: /usr/src/app
+    volumes:
+      - ./backend/reviews-service:/usr/src/app
+      - /usr/src/app/node_modules
+    command: sh -c "npm install --no-audit --no-fund || true && node index.js"
+    ports:
+      - "3005:3000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+    networks:
+      - plataforma_net
+
+networks:
+  plataforma_net:
+    driver: bridge
