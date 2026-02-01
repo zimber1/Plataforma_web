@@ -1,0 +1,146 @@
+[
+    {
+        "id": 1,
+        "name": "Cyberpunk 2077",
+        "author": "CD Projekt RED",
+        "genre": "Acción RPG, Mundo abierto",
+        "image": "https://assetsio.reedpopcdn.com/co6m1m.jpg?width=1920&height=1920&fit=bounds&quality=80&format=jpg&auto=webp",
+        "category": "top_rated"
+    },
+    {
+        "id": 2,
+        "name": "Grand Theft Auto V",
+        "author": "Rockstar Games",
+        "genre": "Acción, Mundo Abierto",
+        "image": "https://image.api.playstation.com/cdn/EP1004/CUSA00411_00/eXsWlP0EkcVkLPHgU4pjflmg07252yU8.png",
+        "category": "top_rated"
+    },
+    {
+        "id": 3,
+        "name": "Red Dead Redemption 2",
+        "author": "Rockstar Games",
+        "genre": "Acción-Aventura",
+        "image": "https://tse4.mm.bing.net/th/id/OIP.8G4yWLW5t0U6zp8sCUt15AHaJJ?rs=1&pid=ImgDetMain&o=7&rm=3",
+        "category": "top_rated"
+    },
+    {
+        "id": 4,
+        "name": "The Last of Us",
+        "author": "Naughty Dog",
+        "genre": "Aventura, Survival Horror",
+        "image": "https://preview.redd.it/which-tlou-1-cover-is-your-favorite-v0-xqhksrtr7cca1.jpg?width=1080&crop=smart&auto=webp&s=d1ed6c2e1378164009778727bf43ddbf84afc77d",
+        "category": "top_rated"
+    },
+    {
+        "id": 5,
+        "name": "DOOM",
+        "author": "id Software",
+        "genre": "FPS, Shooter, Acción",
+        "image": "https://tse1.explicit.bing.net/th/id/OIP.Tm8WgmTzClgPdx9QoxDdyAHaKi?rs=1&pid=ImgDetMain&o=7&rm=3",
+        "category": "top_rated"
+    },
+    {
+        "id": 6,
+        "name": "Minecraft",
+        "author": "Mojang Studios",
+        "genre": "Sandbox, Construcción",
+        "image": "https://i.pinimg.com/736x/f5/60/cc/f560cc7d9a907ae6e4bc5d914a844889.jpg",
+        "category": "top_rated"
+    },
+    {
+        "id": 7,
+        "name": "God of War Ragnarök",
+        "author": "Santa Monica Studio",
+        "genre": "Acción, Hack and Slash",
+        "image": "https://static0.gamerantimages.com/wordpress/wp-content/uploads/2024/12/mixcollage-08-dec-2024-01-22-pm-530.jpg",
+        "category": "top_rated"
+    },
+    {
+        "id": 8,
+        "name": "Portal 2",
+        "author": "Valve",
+        "genre": "Puzles, Plataformas",
+        "image": "https://tse3.mm.bing.net/th/id/OIP.p-o5VNERZF5gEt936CMOUwAAAA?w=300&h=450&rs=1&pid=ImgDetMain&o=7&rm=3",
+        "category": "top_rated"
+    },
+    {
+        "id": 9,
+        "name": "Elden Ring",
+        "author": "FromSoftware",
+        "genre": "Acción RPG, Soulslike",
+        "image": "https://static.metafy.gg/uploads/store/game/55296fb2-6729-4929-ab24-dc41a7547e06/poster/e420342cd8bae9477938fd27a0687918.jpg",
+        "category": "top_rated"
+    },
+    {
+        "id": 10,
+        "name": "The Last of Us Part II",
+        "author": "Naughty Dog",
+        "genre": "Acción-Aventura, Horror",
+        "image": "https://assets-prd.ignimgs.com/2023/11/18/tlou2-remastered-1700267556162.jpg",
+        "category": "top_rated"
+    },
+    {
+        "id": 11,
+        "name": "Dark Souls III",
+        "author": "FromSoftware",
+        "genre": "Acción RPG, Fantasía Oscura",
+        "image": "https://www.gamespot.com/a/uploads/scale_medium/1197/11970954/2976798-sss91mcjvyj85l._sl1500_.jpg",
+        "category": "top_rated"
+    },
+    {
+        "id": 12,
+        "name": "The Witcher 3: Wild Hunt",
+        "author": "CD Projekt RED",
+        "genre": "Acción RPG, Mundo Abierto",
+        "image": "https://tse3.mm.bing.net/th/id/OIP.rEpeOGWDUwlPQwPolF8RfgHaLH?rs=1&pid=ImgDetMain&o=7&rm=3",
+        "category": "top_rated"
+    },
+    {
+        "id": 13,
+        "name": "Expedition 33",
+        "author": "Sandfall Interactive",
+        "genre": "Acción RPG, Mundo abierto",
+        "image": "https://tse4.mm.bing.net/th/id/OIP.3IMYrtUZ0VTtHujQRwYnfADcEs?rs=1&pid=ImgDetMain&o=7&rm=3",
+        "category": "latest"
+    },
+    {
+        "id": 14,
+        "name": "Mafia: The Old Country",
+        "author": "Hangar 13",
+        "genre": "Acción, Shooter, Mafia",
+        "image": "https://m.media-amazon.com/images/M/MV5BYzNjOWUxNjAtZTBhMi00ZjM3LTg5YWQtZTk1MzE5YjkzNTE2XkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
+        "category": "latest"
+    },
+    {
+        "id": 15,
+        "name": "Space Marine 2",
+        "author": "Saber Interactive",
+        "genre": "Acción, TPS, Hack and Slash",
+        "image": "https://tse2.mm.bing.net/th/id/OIP.eg7pJhGGZ9Nj11JCObTjSAHaLH?w=600&h=900&rs=1&pid=ImgDetMain&o=7&rm=3",
+        "category": "latest"
+    },
+    {
+        "id": 16,
+        "name": "Borderlands 4",
+        "author": "Gearbox Software",
+        "genre": "Looter Shooter, Acción FPS",
+        "image": "https://assets.2k.com/1a6ngf98576c/43Ilfxf8AyPbZ4NkwLfjy7/832e2656b5603fdb659cdbdcb33c092e/BDL4_Deluxe_FOB_425x535.png",
+        "category": "latest"
+    },
+    {
+        "id": 17,
+        "name": "Silent Hill f",
+        "author": "NeoBards Entertainment",
+        "genre": "Horror Psicológico",
+        "image": "https://tse1.mm.bing.net/th/id/OIP.TtrVlBoyy8up-Q1spWQ0QwHaIz?rs=1&pid=ImgDetMain&o=7&rm=3",
+        "category": "latest"
+    },
+    {
+        "id": 18,
+        "name": "Little Nightmares III",
+        "author": "Supermassive Games",
+        "genre": "Aventura Atmosférica, Puzles",
+        "image": "https://m.media-amazon.com/images/M/MV5BNzdhMTY1OTMtNzdjYi00YTJiLWEwNTctODMxMzYyOGFjZjZiXkEyXkFqcGc@._V1_.jpg",
+        "category": "latest"
+    }
+]
