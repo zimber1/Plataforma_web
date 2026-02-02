@@ -11,8 +11,9 @@ export default function GameDetails() {
     const [activeTab, setActiveTab] = useState('artistic')
     const [isModalOpen, setIsModalOpen] = useState(false)
 
-    // Para este maquetado solo funciona cyberpunk (id 1)
+   
     const game = gameDetails
+    console.log('Game ID:', id)
 
     return (
         <div className="game-page">
@@ -22,7 +23,11 @@ export default function GameDetails() {
                 {/* Sidebar Left */}
                 <div className="sidebar-left">
                     <h1 className="game-title-main">{game.name}</h1>
-                    <img src={game.image} alt={game.name} className="game-poster-large" />
+                    <img
+                        src={game.image}
+                        alt={game.name}
+                        className="game-poster-large"
+                    />
 
                     <div className="score-section">
                         <div className="score-block">
@@ -48,7 +53,9 @@ export default function GameDetails() {
                         <p>Motor: {game.engine}</p>
                         <p>Lanzamiento: {game.releaseDate}</p>
                         <div className="tag-cloud">
-                            {game.tags.map(tag => <span key={tag} className="tag">{tag}</span>)}
+                            {game.tags.map(tag => (
+                                <span key={tag} className="tag">{tag}</span>
+                            ))}
                         </div>
                     </div>
 
@@ -72,7 +79,16 @@ export default function GameDetails() {
 
                     <div className="media-section">
                         <div className="video-placeholder">
-                            <img src={game.image} alt="trailer" style={{ opacity: 0.3, width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <img
+                                src={game.image}
+                                alt="trailer"
+                                style={{
+                                    opacity: 0.3,
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover'
+                                }}
+                            />
                             <div className="video-overlay">
                                 <div className="plus-images">+10 imágenes</div>
                                 <h2>TRÁILER</h2>
@@ -86,18 +102,35 @@ export default function GameDetails() {
                                 <CheckCircle size={64} color="#4ade80" />
                             </div>
                             <div className="status-text">
-                                Estado: <span className="status-optimo">{game.compatibility.status}</span>
+                                Estado:
+                                <span className="status-optimo">
+                                    {game.compatibility.status}
+                                </span>
                             </div>
                             <div className="spec-lines">
-                                <div className="spec-line"><small>CPU</small> <span>{game.compatibility.cpu}</span><div className="bar green"></div></div>
-                                <div className="spec-line"><small>GPU</small> <span>{game.compatibility.gpu}</span><div className="bar green"></div></div>
-                                <div className="spec-line"><small>RAM</small> <span>{game.compatibility.ram}</span><div className="bar green"></div></div>
+                                <div className="spec-line">
+                                    <small>CPU</small>
+                                    <span>{game.compatibility.cpu}</span>
+                                    <div className="bar green"></div>
+                                </div>
+                                <div className="spec-line">
+                                    <small>GPU</small>
+                                    <span>{game.compatibility.gpu}</span>
+                                    <div className="bar green"></div>
+                                </div>
+                                <div className="spec-line">
+                                    <small>RAM</small>
+                                    <span>{game.compatibility.ram}</span>
+                                    <div className="bar green"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div className="synopsis-box">
-                        <p><small>SINOPSIS:</small> {game.synopsis}</p>
+                        <p>
+                            <small>SINOPSIS:</small> {game.synopsis}
+                        </p>
                     </div>
 
                     <div className="reviews-section">
@@ -106,15 +139,28 @@ export default function GameDetails() {
                             <div className="reviews-controls">
                                 <span>Todas <ChevronDown size={14} /></span>
                                 <span>Más recientes <ChevronDown size={14} /></span>
-                                <button className="new-review-btn" onClick={() => setIsModalOpen(true)}>
+                                <button
+                                    className="new-review-btn"
+                                    onClick={() => setIsModalOpen(true)}
+                                >
                                     <MessageSquare size={16} /> Nueva reseña
                                 </button>
                             </div>
                         </div>
 
                         <div className="tabs">
-                            <button className={activeTab === 'artistic' ? 'tab active' : 'tab'} onClick={() => setActiveTab('artistic')}>Reseñas artísticas</button>
-                            <button className={activeTab === 'technical' ? 'tab active' : 'tab'} onClick={() => setActiveTab('technical')}>Reseñas técnicas</button>
+                            <button
+                                className={activeTab === 'artistic' ? 'tab active' : 'tab'}
+                                onClick={() => setActiveTab('artistic')}
+                            >
+                                Reseñas artísticas
+                            </button>
+                            <button
+                                className={activeTab === 'technical' ? 'tab active' : 'tab'}
+                                onClick={() => setActiveTab('technical')}
+                            >
+                                Reseñas técnicas
+                            </button>
                         </div>
 
                         <div className="reviews-grid">
@@ -128,7 +174,14 @@ export default function GameDetails() {
                                         </div>
                                     </div>
                                     <div className="review-stars">
-                                        {[...Array(5)].map((_, j) => <Star key={j} size={14} fill={j < review.rating ? "gold" : "transparent"} stroke="gold" />)}
+                                        {[...Array(5)].map((_, j) => (
+                                            <Star
+                                                key={j}
+                                                size={14}
+                                                fill={j < review.rating ? 'gold' : 'transparent'}
+                                                stroke="gold"
+                                            />
+                                        ))}
                                         <span className="review-date">{review.date}</span>
                                     </div>
                                     <p className="review-text">{review.content}</p>
@@ -136,13 +189,17 @@ export default function GameDetails() {
                             ))}
                         </div>
                     </div>
+
                     <div style={{ textAlign: 'center', margin: '20px 0' }}>
-                        <button className="load-more-btn">Cargar mas reseñas</button>
+                        <button className="load-more-btn">Cargar más reseñas</button>
                     </div>
                 </div>
             </div>
 
-            <ReviewModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+            <ReviewModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+            />
             <Footer />
         </div>
     )
