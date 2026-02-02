@@ -1,15 +1,23 @@
-const http = require('http');
-const PORT = process.env.PORT || 3000;
-const name = 'catalog-service';
-const server = http.createServer((req, res) => {
-  if (req.url === '/health') {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ status: 'ok', service: name }));
-    return;
-  }
+require('dotenv').config({ path: `${__dirname}/.env` });
 
-  res.writeHead(200, { 'Content-Type': 'application/json' });
-  res.end(JSON.stringify({ service: name, path: req.url }));
+const express = require('express');
+const errorHandler = require('../shared/errors/errorHandler');
+
+const app = express();
+
+app.use(express.json());
+
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    service: process.env.SERVICE_NAME
+  });
 });
 
-server.listen(PORT, () => console.log(`${name} listening on ${PORT}`));
+require('./routes')(app);
+
+app.use(errorHandler);
+
+app.listen(process.env.PORT, () => {
+  console.log(`${process.env.SERVICE_NAME} listening on ${process.env.PORT}`);
+});

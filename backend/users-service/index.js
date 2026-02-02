@@ -7,7 +7,7 @@ const app = express();
 
 app.use(express.json());
 
-// health check (simple, temporal)
+// health
 app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
@@ -15,10 +15,8 @@ app.get('/health', (req, res) => {
   });
 });
 
-// routes de negocio (cuando existan)
 require('./routes')(app);
 
-// error handler SIEMPRE al final
 app.use(errorHandler);
 
 app.listen(process.env.PORT, () => {

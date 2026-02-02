@@ -1,16 +1,11 @@
 {
   "name": "backend",
-  "version": "1.0.0",
-  "description": "Este directorio contiene el **backend del proyecto Plataforma Web**, el cual está diseñado bajo una **arquitectura de microservicios** con el objetivo de ofrecer una solución escalable, mantenible y desacoplada.",
-  "main": "index.js",
+  "private": true,
+  "description": "Orquestador de desarrollo para los microservicios del backend",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "concurrently \"npm start --prefix api-gateway\" \"npm start --prefix users-service\" \"npm start --prefix catalog-service\" \"npm start --prefix reviews-service\""
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "dependencies": {
-    "dotenv": "^17.2.3"
+  "devDependencies": {
+    "concurrently": "^9.2.1"
   }
 }
