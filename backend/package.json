@@ -1,0 +1,16 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "Este directorio contiene el **backend del proyecto Plataforma Web**, el cual está diseñado bajo una **arquitectura de microservicios** con el objetivo de ofrecer una solución escalable, mantenible y desacoplada.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "dotenv": "^17.2.3"
+  }
+}
