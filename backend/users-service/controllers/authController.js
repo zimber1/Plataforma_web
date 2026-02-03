@@ -7,11 +7,13 @@ const generateToken = (user) => {
     return jwt.sign({ 
         id: user._id,
         username: user.username,
-        role: user.role || 'user' // Default 'user' si no tiene rol
+        role: user.role || 'user',
+        pcSpecs: user.pcSpecs || {}
     }, process.env.JWT_SECRET, {
         expiresIn: '30d',
     });
 };
+
 
 exports.register = async (req, res, next) => {
     try {

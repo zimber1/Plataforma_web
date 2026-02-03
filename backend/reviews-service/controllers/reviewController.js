@@ -82,27 +82,23 @@ exports.upsertReview = async (req, res, next) => {
     try {
         const { gameId, type, rating, comment } = req.body;
         
-        // Datos seguros del token
-        const userId = req.user.id; 
-        const username = req.user.username;
+        // Obtenemos specs del token (Snapshot actual)
+        const { id: userId, username, pcSpecs } = req.user;
 
-        // Validaciones
         if (!username) {
-             return res.status(401).json({ success: false, msg: 'Token antiguo, por favor haz login de nuevo.' });
+             return res.status(401).json({ success: false, msg: 'Token antiguo, haz login de nuevo.' });
         }
         if (![1, 2, 3, 4, 5].includes(Number(rating))) {
             return res.status(400).json({ success: false, msg: 'La puntuación debe ser entre 1 y 5' });
         }
 
-        // Busca si ya existe review de este usuario para este juego y tipo
-        // Si existe -> ACTUALIZA (Rating, Comment, Fecha)
-        // Si no existe -> CREA
         const review = await Review.findOneAndUpdate(
             { gameId, userId, type }, 
             { 
                 rating, 
                 comment, 
-                username, // Actualizamos username por si cambió
+                username,
+                pcSpecs: pcSpecs || {}, // <--- GUARDADO HISTÓRICO
                 updatedAt: new Date()
             },
             { new: true, upsert: true, runValidators: true, setDefaultsOnInsert: true }

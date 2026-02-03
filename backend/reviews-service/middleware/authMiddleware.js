@@ -13,12 +13,13 @@ module.exports = (req, res, next) => {
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         
-        // Extraer todo lo útil del payload
         req.user = { 
             id: decoded.id,
             username: decoded.username,
-            role: decoded.role || 'user'
+            role: decoded.role || 'user',
+            pcSpecs: decoded.pcSpecs // <--- RESCATAMOS LAS SPECS AQUÍ
         };
+        
         next();
     } catch (error) {
         const err = new Error('Sesión expirada o inválida');
