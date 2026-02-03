@@ -11,15 +11,6 @@ app.use(express.json());
 
 // --- USERS SERVICE ---
 
-// Helper para headers
-const getAuthHeaders = (req) => {
-    const headers = {};
-    if (req.headers.authorization) {
-        headers['Authorization'] = req.headers.authorization;
-    }
-    return headers;
-};
-
 // 1. REGISTRO
 app.post('/api/auth/register', async (req, res) => {
     try {
@@ -98,6 +89,35 @@ app.use('/api/games', async (req, res) => {
             res.status(error.response.status).json(error.response.data);
         } else {
             res.status(500).json({ success: false, msg: 'Error en el gateway de catálogo' });
+        }
+    }
+});
+
+// --- REVIEWS SERVICE ---
+app.use('/api/reviews', async (req, res) => {
+    try {
+        // Redirigir a localhost:3003
+        const url = `http://localhost:3003${req.originalUrl}`;
+        const method = req.method.toLowerCase();
+        
+        // Pasamos Authorization si existe (vital para protected routes)
+        const headers = {};
+        if (req.headers.authorization) headers['Authorization'] = req.headers.authorization;
+
+        const response = await axios({
+            method,
+            url,
+            data: req.method !== 'GET' ? req.body : undefined,
+            params: req.query,
+            headers: headers
+        });
+        res.status(response.status).json(response.data);
+    } catch (error) {
+        if (error.response) {
+            res.status(error.response.status).json(error.response.data);
+        } else {
+            console.error("Error Gateway -> Reviews:", error.message);
+            res.status(500).json({ success: false, msg: 'Error en el gateway de reviews' });
         }
     }
 });

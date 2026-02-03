@@ -2,10 +2,14 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-// Generar Token JWT
-const generateToken = (id) => {
-    return jwt.sign({ id }, process.env.JWT_SECRET, {
-        expiresIn: '30d', // Sesión válida por 30 días
+// Generar Token JWT (Ahora incluye ID, username y rol)
+const generateToken = (user) => {
+    return jwt.sign({ 
+        id: user._id,
+        username: user.username,
+        role: user.role || 'user' // Default 'user' si no tiene rol
+    }, process.env.JWT_SECRET, {
+        expiresIn: '30d',
     });
 };
 
@@ -13,7 +17,6 @@ exports.register = async (req, res, next) => {
     try {
         const { username, email, password } = req.body;
 
-        // 1. Verificar si el usuario ya existe
         let userExists = await User.findOne({ email });
         if (userExists) {
             const err = new Error('El correo ya está registrado');
@@ -28,30 +31,30 @@ exports.register = async (req, res, next) => {
             throw err;
         }
 
-        // 2. Encriptar contraseña
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // 3. Crear usuario
+        // Crear usuario (con rol por defecto)
         const user = await User.create({
             username,
             email,
-            password: hashedPassword
+            password: hashedPassword,
+            role: 'user'
         });
 
-        // 4. Responder con Token (para login automático al registrarse)
         res.status(201).json({
             success: true,
-            token: generateToken(user._id),
+            token: generateToken(user), // Token enriquecido
             user: {
                 id: user._id,
                 username: user.username,
-                email: user.email
+                email: user.email,
+                role: user.role
             }
         });
 
     } catch (error) {
-        next(error); // Pasa el error al middleware global
+        next(error);
     }
 };
 
@@ -59,7 +62,6 @@ exports.login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
 
-        // 1. Buscar usuario
         const user = await User.findOne({ email });
         if (!user) {
             const err = new Error('Credenciales inválidas');
@@ -67,7 +69,6 @@ exports.login = async (req, res, next) => {
             throw err;
         }
 
-        // 2. Comparar contraseñas
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             const err = new Error('Credenciales inválidas');
@@ -75,21 +76,19 @@ exports.login = async (req, res, next) => {
             throw err;
         }
 
-        // 3. Responder con Token
         res.json({
             success: true,
-            token: generateToken(user._id),
+            token: generateToken(user), // Token enriquecido
             user: {
                 id: user._id,
                 username: user.username,
                 email: user.email,
-                pcSpecs: user.pcSpecs // Devolvemos esto para que el Front sepa si ya configuró su PC
+                role: user.role || 'user',
+                pcSpecs: user.pcSpecs
             }
         });
 
     } catch (error) {
-        next(error); // Pasa el error al middleware global
+        next(error);
     }
 };
-
-// TODO: Implementar Reset Password (requiere servicio de email o flujo de tokens)
