@@ -1,24 +1,28 @@
-require('dotenv').config({ path: `${__dirname}/.env` });
-
+require('dotenv').config();
 const express = require('express');
-const errorHandler = require('../shared/errors/errorHandler');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const helmet = require('helmet');
 
 const app = express();
+const PORT = process.env.PORT || 3001; // Usamos 3001 para User Service
 
-app.use(express.json());
+// Middlewares
+app.use(express.json()); // Body parser
+app.use(cors()); // Permitir peticiones cruzadas (útil para cuando conectes Angular)
+app.use(helmet()); // Headers de seguridad básicos
 
-// health
-app.get('/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    service: process.env.SERVICE_NAME
-  });
-});
+// Conexión a MongoDB Atlas
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => console.log('MongoDB Conectado (Users Service)'))
+    .catch(err => console.error('Error conectando a Mongo:', err));
 
-require('./routes')(app);
+// Rutas
+app.use('/api/auth', require('./routes/auth'));
 
-app.use(errorHandler);
+// Health Check (Para ver si el servicio vive)
+app.get('/', (req, res) => res.send(`Users Service running on port ${PORT}`));
 
-app.listen(process.env.PORT, () => {
-  console.log(`${process.env.SERVICE_NAME} listening on ${process.env.PORT}`);
+app.listen(PORT, () => {
+    console.log(`Users Service corriendo en puerto ${PORT}`);
 });
