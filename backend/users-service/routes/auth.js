@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { check, validationResult } = require('express-validator');
 const authController = require('../controllers/authController');
+const authMiddleware = require('../middleware/authMiddleware');
+
 
 // Middleware para revisar errores de validación
 const validate = (req, res, next) => {
@@ -26,5 +28,22 @@ router.post('/login', [
     check('email', 'Agrega un email válido').isEmail(),
     check('password', 'El password es obligatorio').exists()
 ], validate, authController.login);
+
+// @route   GET /api/auth/me
+// @desc    Obtener perfil del usuario autenticado
+router.get('/me', authMiddleware, async (req, res, next) => {
+    try {
+        const User = require('../models/User');
+        const user = await User.findById(req.user.id).select('-password');
+        if (!user) {
+            const err = new Error('Usuario no encontrado');
+            err.status = 404;
+            throw err;
+        }
+        res.json({ success: true, user });
+    } catch (error) {
+        next(error);
+    }
+});
 
 module.exports = router;

@@ -23,6 +23,10 @@ app.use('/api/auth', require('./routes/auth'));
 // Health Check (Para ver si el servicio vive)
 app.get('/', (req, res) => res.send(`Users Service running on port ${PORT}`));
 
+// Manejo global de errores
+const errorHandler = require('../shared/errors/errorHandler');
+app.use(errorHandler);
+
 app.listen(PORT, () => {
     console.log(`Users Service corriendo en puerto ${PORT}`);
 });

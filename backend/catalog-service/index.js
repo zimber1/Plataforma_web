@@ -7,17 +7,22 @@ const app = express();
 
 app.use(express.json());
 
+// Health check endpoint
 app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
-    service: process.env.SERVICE_NAME
+    service: process.env.SERVICE_NAME || 'catalog-service'
   });
 });
 
-require('./routes')(app);
+// Rutas del catálogo de juegos
+app.use('/api/games', require('./routes/games'));
 
+// Middleware global de manejo de errores (¡siempre al final!)
 app.use(errorHandler);
 
-app.listen(process.env.PORT, () => {
-  console.log(`${process.env.SERVICE_NAME} listening on ${process.env.PORT}`);
+// Arranque del servicio
+const PORT = process.env.PORT || 3002;
+app.listen(PORT, () => {
+  console.log(`${process.env.SERVICE_NAME || 'catalog-service'} listening on ${PORT}`);
 });

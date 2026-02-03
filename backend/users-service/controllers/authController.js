@@ -9,19 +9,23 @@ const generateToken = (id) => {
     });
 };
 
-exports.register = async (req, res) => {
+exports.register = async (req, res, next) => {
     try {
         const { username, email, password } = req.body;
 
         // 1. Verificar si el usuario ya existe
         let userExists = await User.findOne({ email });
         if (userExists) {
-            return res.status(400).json({ msg: 'El correo ya está registrado' });
+            const err = new Error('El correo ya está registrado');
+            err.status = 400;
+            throw err;
         }
         
         userExists = await User.findOne({ username });
         if (userExists) {
-            return res.status(400).json({ msg: 'El nombre de usuario ya está en uso' });
+            const err = new Error('El nombre de usuario ya está en uso');
+            err.status = 400;
+            throw err;
         }
 
         // 2. Encriptar contraseña
@@ -47,25 +51,28 @@ exports.register = async (req, res) => {
         });
 
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ msg: 'Error en el servidor al registrar' });
+        next(error); // Pasa el error al middleware global
     }
 };
 
-exports.login = async (req, res) => {
+exports.login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
 
         // 1. Buscar usuario
         const user = await User.findOne({ email });
         if (!user) {
-            return res.status(400).json({ msg: 'Credenciales inválidas' });
+            const err = new Error('Credenciales inválidas');
+            err.status = 400;
+            throw err;
         }
 
         // 2. Comparar contraseñas
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            return res.status(400).json({ msg: 'Credenciales inválidas' });
+            const err = new Error('Credenciales inválidas');
+            err.status = 400;
+            throw err;
         }
 
         // 3. Responder con Token
@@ -81,8 +88,7 @@ exports.login = async (req, res) => {
         });
 
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ msg: 'Error en el servidor al iniciar sesión' });
+        next(error); // Pasa el error al middleware global
     }
 };
 
