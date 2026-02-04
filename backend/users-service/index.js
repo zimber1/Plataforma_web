@@ -19,6 +19,7 @@ mongoose.connect(process.env.MONGO_URI)
 
 // Rutas
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/hardware', require('./routes/hardware'));
 
 // Health Check (Para ver si el servicio vive)
 app.get('/', (req, res) => res.send(`Users Service running on port ${PORT}`));

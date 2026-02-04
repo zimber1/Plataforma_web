@@ -23,7 +23,7 @@ const UserSchema = new mongoose.Schema({
     pcSpecs: {
         cpu: { type: String, default: null }, // Ej: "Intel Core i5-12400F"
         gpu: { type: String, default: null }, // Ej: "Nvidia RTX 3060"
-        ram: { type: Number, default: null }, // En GB
+        ram: { type: String, default: null },
         os: { type: String, default: null }
     },
     role: {
