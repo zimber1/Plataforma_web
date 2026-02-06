@@ -1,13 +1,15 @@
 # Build stage: build the frontend
 FROM node:20 AS builder
-WORKDIR /app
-
-# Copy only frontend package files to leverage layer caching
-COPY frontend/package*.json ./frontend/
 WORKDIR /app/frontend
-RUN npm install --no-audit --no-fund
 
-# Copy frontend source and build
+# Copy package files first to leverage Docker layer caching
+COPY frontend/package*.json ./
+COPY frontend/package-lock*.json ./
+
+# Install dependencies (allow legacy peer deps resolution introduced for testing/dev deps)
+RUN npm ci --legacy-peer-deps --no-audit --no-fund
+
+# Copy source and build
 COPY frontend/ .
 RUN npm run build
 
@@ -15,7 +17,7 @@ RUN npm run build
 FROM node:20-alpine AS runner
 WORKDIR /app
 
-# Install a simple static file server
+# Install a small static server
 RUN npm install -g serve@14
 
 # Copy built files from builder
