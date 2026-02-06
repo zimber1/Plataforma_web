@@ -20,7 +20,8 @@ jobs:
 
       - name: Install dependencies
         working-directory: ./frontend
-        run: npm ci
+        # use legacy peer deps to avoid ERESOLVE during CI when dev deps peer to older React
+        run: npm ci --legacy-peer-deps
 
       - name: Run tests
         working-directory: ./frontend
