@@ -50,9 +50,33 @@ El proyecto cuenta con una configuración de **Docker** que permite ejecutar la 
 
 ### Ejecución local
 Para construir y ejecutar el proyecto localmente se utiliza el siguiente comando:
+```bash
+# Construir y levantar con docker-compose
+docker compose build
+docker compose up -d
+
+# Alternativamente construir solo la imagen del frontend y ejecutar
+# desde la raíz del repositorio:
+docker build -t plataforma-frontend .
+docker run --rm -p 3000:3000 plataforma-frontend
+
+```
+
+### Pruebas (tests)
+
+Para ejecutar los tests localmente (en la carpeta `frontend`):
 
 ```bash
-docker compose up -d
+cd frontend
+npm ci --legacy-peer-deps
+npm test
+```
+
+Nota: el contenedor Docker está configurado para usar `npm ci --legacy-peer-deps` durante la etapa de build para evitar conflictos de peer-dependencies introducidos por las dependencias de testing o herramientas de desarrollo.
+
+### CI / GitHub Actions
+
+Hay un workflow de CI en `.github/workflows/ci.yml` que instala dependencias y ejecuta los tests del `frontend`. El pipeline fallará si los tests no pasan.
 
 
 

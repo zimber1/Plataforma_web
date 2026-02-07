@@ -1,11 +1,29 @@
-FROM node:20
+# Build stage: build the frontend
+FROM node:20 AS builder
+WORKDIR /app/frontend
 
+# Copy package files first to leverage Docker layer caching
+COPY frontend/package*.json ./
+COPY frontend/package-lock*.json ./
+
+# Install dependencies (allow legacy peer deps resolution introduced for testing/dev deps)
+RUN npm ci --legacy-peer-deps --no-audit --no-fund
+
+# Copy source and build
+COPY frontend/ .
+RUN npm run build
+
+# Production stage: serve built static files with a lightweight server
+FROM node:20-alpine AS runner
 WORKDIR /app
 
-COPY . .
+# Install a small static server
+RUN npm install -g serve@14
 
-RUN npm install || echo "Sin dependencias aún"
+# Copy built files from builder
+COPY --from=builder /app/frontend/dist ./dist
 
 EXPOSE 3000
 
-CMD ["node", "-e", "console.log('Contenedor Plataforma Web ejecutándose')"]
+# Run the static server on port 3000
+CMD ["serve", "-s", "dist", "-l", "3000"]
