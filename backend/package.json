@@ -1,0 +1,11 @@
+{
+  "name": "backend",
+  "private": true,
+  "description": "Orquestador de desarrollo para los microservicios del backend",
+  "scripts": {
+    "dev": "concurrently \"npm start --prefix api-gateway\" \"npm start --prefix users-service\" \"npm start --prefix catalog-service\" \"npm start --prefix reviews-service\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
