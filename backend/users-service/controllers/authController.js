@@ -125,3 +125,130 @@ exports.login = async (req, res, next) => {
         next(error);
     }
 };
+
+// Actualizar specs de PC del usuario
+// Actualizar specs de PC del usuario (PROTEGIDO Y MEJORADO)
+exports.updateSpecs = async (req, res, next) => {
+    try {
+        const { pcSpecs } = req.body;
+        const userId = req.user.id; // Viene del middleware authMiddleware
+
+        // Validación: pcSpecs es requerido
+        if (!pcSpecs || typeof pcSpecs !== 'object') {
+            const err = new Error('Se requiere un objeto pcSpecs válido');
+            err.status = 400;
+            throw err;
+        }
+
+        // Verificar que el usuario existe (seguridad extra)
+        const userExists = await User.findById(userId);
+        if (!userExists) {
+            const err = new Error('Usuario no encontrado');
+            err.status = 404;
+            throw err;
+        }
+
+        // VALIDACIÓN DE HARDWARE con autocompletado (solo acepta valores válidos de la BD)
+        const validationErrors = [];
+
+        // Validar CPU (si se envía)
+        if (pcSpecs.cpu) {
+            const validCpu = await Cpu.findOne({ name: pcSpecs.cpu });
+            if (!validCpu) {
+                validationErrors.push(`CPU '${pcSpecs.cpu}' no es válido. Selecciona uno de la lista de autocompletado.`);
+            }
+        }
+
+        // Validar GPU (si se envía)
+        if (pcSpecs.gpu) {
+            const validGpu = await Gpu.findOne({ name: pcSpecs.gpu });
+            if (!validGpu) {
+                validationErrors.push(`GPU '${pcSpecs.gpu}' no es válida. Selecciona una de la lista de autocompletado.`);
+            }
+        }
+
+        // Validar RAM (si se envía)
+        if (pcSpecs.ram) {
+            const validRam = await Ram.findOne({ name: pcSpecs.ram });
+            if (!validRam) {
+                validationErrors.push(`RAM '${pcSpecs.ram}' no es válida. Selecciona una de la lista de autocompletado.`);
+            }
+        }
+
+        // Si hay errores de validación, lanzar error
+        if (validationErrors.length > 0) {
+            const err = new Error('Errores de validación en las specs');
+            err.status = 400;
+            err.errors = validationErrors;
+            throw err;
+        }
+
+        // Al menos un campo debe estar presente
+        if (!pcSpecs.cpu && !pcSpecs.gpu && !pcSpecs.ram && !pcSpecs.os) {
+            const err = new Error('Debes proporcionar al menos una spec (CPU, GPU, RAM u OS)');
+            err.status = 400;
+            throw err;
+        }
+
+        // Actualizar specs del usuario (SOLO SU PROPIA CUENTA)
+        const updatedUser = await User.findByIdAndUpdate(
+            userId, // Solo puede actualizar su propia cuenta
+            { pcSpecs },
+            { new: true, runValidators: true }
+        ).select('-password');
+
+        if (!updatedUser) {
+            const err = new Error('Error al actualizar las specs');
+            err.status = 500;
+            throw err;
+        }
+
+        // INVALIDAR CACHÉ de análisis en catalog-service
+        try {
+            const mongoose = require('mongoose');
+            const AnalysisCacheSchema = new mongoose.Schema({
+                userId: String,
+                gameId: Number,
+                gameName: String,
+                userSpecs: Object,
+                analysis: Object,
+                createdAt: Date
+            });
+            
+            const AnalysisCache = mongoose.models.AnalysisCache || 
+                                  mongoose.model('AnalysisCache', AnalysisCacheSchema);
+            
+            const deleteResult = await AnalysisCache.deleteMany({ userId: userId.toString() });
+            console.log(`🗑️ Caché invalidado: ${deleteResult.deletedCount} análisis eliminados para usuario ${updatedUser.username}`);
+        } catch (cacheError) {
+            // No detener el proceso si falla el caché, solo logear
+            console.error('⚠️ Error invalidando caché (no crítico):', cacheError.message);
+        }
+
+        res.json({
+            success: true,
+            message: 'Specs actualizadas correctamente',
+            user: {
+                id: updatedUser._id,
+                username: updatedUser.username,
+                email: updatedUser.email,
+                role: updatedUser.role,
+                pcSpecs: updatedUser.pcSpecs
+            }
+        });
+
+    } catch (error) {
+        // Manejo de errores específicos
+        if (error.errors) {
+            // Errores de validación custom
+            return res.status(error.status || 400).json({
+                success: false,
+                message: error.message,
+                errors: error.errors
+            });
+        }
+        
+        // Otros errores
+        next(error);
+    }
+};

@@ -4,7 +4,6 @@ const { check, validationResult } = require('express-validator');
 const authController = require('../controllers/authController');
 const authMiddleware = require('../middleware/authMiddleware');
 
-
 // Middleware para revisar errores de validación
 const validate = (req, res, next) => {
     const errors = validationResult(req);
@@ -45,5 +44,9 @@ router.get('/me', authMiddleware, async (req, res, next) => {
         next(error);
     }
 });
+
+// @route   PUT /api/auth/specs
+// @desc    Actualizar specs de PC del usuario
+router.put('/specs', authMiddleware, authController.updateSpecs);
 
 module.exports = router;
