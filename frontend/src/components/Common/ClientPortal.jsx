@@ -6,6 +6,7 @@ export default function ClientPortal({ children, selector = '#portal-root' }) {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
+        // eslint-disable-next-line
         setMounted(true);
 
         // Crear el nodo del portal si no existe
