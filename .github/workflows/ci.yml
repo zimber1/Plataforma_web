@@ -8,11 +8,12 @@ on:
     branches:
       - main
       - master
-      - '**'
+      - '**' # <--- ESTO ES NUEVO: Permite que corra en CUALQUIER rama (feature, fix, etc.)
     paths:
       - 'frontend/**'
       - 'frontend/package.json'
       - 'package.json'
+      - '.github/workflows/**' # <--- NUEVO: Para que se active si editas este archivo
   pull_request:
     branches: [ main, master ]
     paths:
@@ -42,12 +43,12 @@ jobs:
         run: npm install --legacy-peer-deps --no-audit --no-fund
         working-directory: frontend
 
-
+      # Paso 2: Tests de Interacción
       - name: Run Interaction Tests
         run: npm test
         working-directory: frontend
 
-
+      # Paso 3: Lint 
       - name: Lint
         working-directory: frontend
         run: npm run lint --if-present
