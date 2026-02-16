@@ -32,6 +32,10 @@ jobs:
       - name: Install dependencies
         run: npm install --legacy-peer-deps --no-audit --no-fund
         working-directory: frontend
+      
+      - name: Run Interaction Tests
+        run: npm test
+        working-directory: frontend
 
       - name: Lint
         run: npm run lint --if-present
