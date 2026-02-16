@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import GameDetails from '../../GameDetails'; // Asegúrate de que esta ruta apunte a tu componente real
+import GameDetails from './GameDetails'; // CORREGIDO: Apunta al archivo en la misma carpeta
 
 // --- MOCKS (Simulaciones) ---
 // Simulamos las dependencias para que el test no dependa de todo el proyecto
@@ -19,6 +19,7 @@ jest.mock('lucide-react', () => ({
 }));
 
 // Mock de componentes hijos
+// Nota: Como el test está en src/pages/GameDetails/, subir dos niveles (../../) nos lleva a src/
 jest.mock('../../components/Navbar/Navbar', () => () => <div data-testid="navbar">Navbar Mock</div>);
 jest.mock('../../components/Footer/Footer', () => () => <div data-testid="footer">Footer Mock</div>);
 jest.mock('../../components/ReviewModal/ReviewModal', () => ({ isOpen, onClose }) => (
