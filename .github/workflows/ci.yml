@@ -8,6 +8,7 @@ on:
     branches:
       - main
       - master
+      - '**'
     paths:
       - 'frontend/**'
       - 'frontend/package.json'
@@ -41,7 +42,7 @@ jobs:
         run: npm install --legacy-peer-deps --no-audit --no-fund
         working-directory: frontend
 
-      # Paso 2: Tests de Interacción 
+
       - name: Run Interaction Tests
         run: npm test
         working-directory: frontend
@@ -64,7 +65,7 @@ jobs:
           name: frontend-dist
           path: frontend/dist
 
-      # Paso 6: Despliegue (Solo en main/master)
+      # Paso 6: Despliegue (Solo en main/master para no romper producción)
       - name: Deploy to GitHub Pages
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
         uses: peaceiris/actions-gh-pages@v4
