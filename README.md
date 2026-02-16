@@ -22,11 +22,11 @@ Los usuarios no siempre conocen si su computadora cumple con los requisitos nece
 
 
 ## Roles del equipo
-- **Tech Lead:** Ariel Abimael Chacón Herrera
-- **Frontend:** Carlos Andrés Arriaga Márquez
-- **Backend:** Germán Yair Martínez Bolaños
-- **DevOps:** Claudia Espíndola López
-- **QA:** Jesús Emanuel Vega Medina
+- **Tech Lead:** Carlos Andrés Arriaga Márquez
+- **Frontend:** Jesús Emanuel Vega Medina
+- **Backend:** Ariel Abimael Chacón Herrera
+- **DevOps:** Germán Yair Martínez Bolaños
+- **QA:** Claudia Espíndola López
 
 
 ## Carpeta Investigaciones

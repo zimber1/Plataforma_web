@@ -1,25 +1,28 @@
-name: Frontend CI
+name: Frontend CI + Deploy
+
+permissions:
+  contents: write
 
 on:
   push:
-    branches: [ main, master ]
+    branches:
+      - main
+      - master
     paths:
       - 'frontend/**'
       - 'frontend/package.json'
       - 'package.json'
-  pull_request:
-    branches: [ main, master ]
-    paths:
-      - 'frontend/**'
-  workflow_dispatch: {}
+  workflow_dispatch:
 
 jobs:
-  build:
-    name: Build and Lint
+  frontend:
+    name: Build, Lint and Deploy Frontend
     runs-on: ubuntu-latest
+
     strategy:
       matrix:
         node-version: [20.x]
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -29,37 +32,32 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: Install dependencies
+- name: Install dependencies
         run: npm install --legacy-peer-deps --no-audit --no-fund
         working-directory: frontend
-      
+
       - name: Run Interaction Tests
         run: npm test
         working-directory: frontend
 
+
       - name: Lint
-        run: npm run lint --if-present
         working-directory: frontend
+        run: npm run lint --if-present
 
       - name: Build
-        run: npm run build --if-present
         working-directory: frontend
+        run: npm run build --if-present
 
       - name: Upload build artifact
-        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: frontend-dist
           path: frontend/dist
 
-      - name: Deploy to GitHub Pages (push to gh-pages)
-        if: github.ref == 'refs/heads/main'
+      - name: Deploy to GitHub Pages
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: frontend/dist
-
-permissions:
-  pages: write
-  contents: read
-
