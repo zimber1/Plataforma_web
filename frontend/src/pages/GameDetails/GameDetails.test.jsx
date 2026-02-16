@@ -1,9 +1,9 @@
+/* eslint-disable no-undef */
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import GameDetails from './GameDetails'; // CORREGIDO: Apunta al archivo en la misma carpeta
+import GameDetails from './GameDetails'; 
 
 // --- MOCKS (Simulaciones) ---
-// Simulamos las dependencias para que el test no dependa de todo el proyecto
 jest.mock('react-router-dom', () => ({
   useParams: () => ({ id: '1' }),
   Link: ({ children }) => <a href="#">{children}</a>
@@ -18,8 +18,6 @@ jest.mock('lucide-react', () => ({
   MessageSquare: () => <span>💬</span>
 }));
 
-// Mock de componentes hijos
-// Nota: Como el test está en src/pages/GameDetails/, subir dos niveles (../../) nos lleva a src/
 jest.mock('../../components/Navbar/Navbar', () => () => <div data-testid="navbar">Navbar Mock</div>);
 jest.mock('../../components/Footer/Footer', () => () => <div data-testid="footer">Footer Mock</div>);
 jest.mock('../../components/ReviewModal/ReviewModal', () => ({ isOpen, onClose }) => (
@@ -30,7 +28,6 @@ jest.mock('../../components/ReviewModal/ReviewModal', () => ({ isOpen, onClose }
   ) : null
 ));
 
-// Mock de los datos JSON
 jest.mock('../../data/game_details.json', () => ({
   name: "Juego Test",
   image: "test.jpg",
@@ -49,9 +46,7 @@ jest.mock('../../data/game_details.json', () => ({
   ]
 }));
 
-// --- TEST SUITE ---
 describe('GameDetails - Validación DevOps', () => {
-
   test('Renderiza el título del juego', () => {
     render(<GameDetails />);
     expect(screen.getByText('Juego Test')).toBeInTheDocument();
@@ -59,15 +54,9 @@ describe('GameDetails - Validación DevOps', () => {
 
   test('Interacción: Abre el modal de reseña al hacer click', () => {
     render(<GameDetails />);
-    
-    // Verifica que el modal NO está antes del click
     expect(screen.queryByTestId('review-modal')).not.toBeInTheDocument();
-    
-    // Simula el click
     const botonResena = screen.getByText(/Nueva reseña/i);
     fireEvent.click(botonResena);
-    
-    // Verifica que el modal SÍ está después del click
     expect(screen.getByTestId('review-modal')).toBeInTheDocument();
   });
 });
