@@ -11,7 +11,7 @@ export default function GameDetails() {
     const [activeTab, setActiveTab] = useState('artistic')
     const [isModalOpen, setIsModalOpen] = useState(false)
 
-   
+
     const game = gameDetails
     console.log('Game ID:', id)
 
@@ -19,48 +19,48 @@ export default function GameDetails() {
         <div className="game-page">
             <Navbar />
 
-            <div className="game-content-container">
-                {/* Sidebar Left */}
-                <div className="sidebar-left">
+            <div className="game-content-container" id="main-content" tabIndex="-1">
+                {/* Lateral Izquierdo */}
+                <aside className="sidebar-left" aria-label="Información lateral">
                     <h1 className="game-title-main">{game.name}</h1>
                     <img
                         src={game.image}
-                        alt={game.name}
+                        alt={`Portada de ${game.name}`}
                         className="game-poster-large"
                     />
 
-                    <div className="score-section">
+                    <div className="score-section" aria-label="Puntuaciones">
                         <div className="score-block">
                             <span className="score-label">Puntuación artística</span>
                             <div className="score-value">
-                                <Star size={24} fill="gold" stroke="gold" />
+                                <Star size={24} fill="var(--primary-purple)" stroke="var(--primary-purple)" aria-hidden="true" />
                                 <span>{game.artScore}</span>
                             </div>
                         </div>
                         <div className="score-block">
                             <span className="score-label">Puntuación técnica</span>
                             <div className="score-value">
-                                <Settings size={24} color="var(--primary-purple)" />
+                                <Settings size={24} color="var(--primary-purple)" aria-hidden="true" />
                                 <span>{game.techScore}</span>
                             </div>
                         </div>
                     </div>
 
-                    <div className="info-box">
-                        <h3>Información del juego</h3>
+                    <section className="info-box" aria-labelledby="game-info-title">
+                        <h3 id="game-info-title">Información del juego</h3>
                         <p>Desarrollador: {game.developer}</p>
                         <p>Editor: {game.editor}</p>
                         <p>Motor: {game.engine}</p>
                         <p>Lanzamiento: {game.releaseDate}</p>
-                        <div className="tag-cloud">
+                        <div className="tag-cloud" aria-label="Etiquetas">
                             {game.tags.map(tag => (
                                 <span key={tag} className="tag">{tag}</span>
                             ))}
                         </div>
-                    </div>
+                    </section>
 
-                    <div className="requirements-box">
-                        <h3>Requisitos mínimos</h3>
+                    <section className="requirements-box" aria-labelledby="req-title">
+                        <h3 id="req-title">Requisitos mínimos</h3>
                         <ul className="req-list">
                             <li>Processor: {game.minRequirements.processor}</li>
                             <li>Memory: {game.minRequirements.memory}</li>
@@ -68,20 +68,21 @@ export default function GameDetails() {
                             <li>DirectX: {game.minRequirements.directX}</li>
                             <li>Storage: {game.minRequirements.storage}</li>
                         </ul>
-                    </div>
-                </div>
+                    </section>
+                </aside>
 
-                {/* Main Center */}
-                <div className="main-center">
-                    <nav className="breadcrumb">
-                        Inicio &gt; Juego &gt; {game.name}
+                {/* Centro Principal */}
+                <main className="main-center">
+                    <nav className="breadcrumb" aria-label="Ruta de navegación">
+                        <Link to="/">Inicio</Link> &gt; Juego &gt; {game.name}
                     </nav>
 
                     <div className="media-section">
-                        <div className="video-placeholder">
+                        <div className="video-placeholder" role="img" aria-label="Tráiler y galería de imágenes">
                             <img
                                 src={game.image}
-                                alt="trailer"
+                                alt=""
+                                aria-hidden="true"
                                 style={{
                                     opacity: 0.3,
                                     width: '100%',
@@ -96,10 +97,10 @@ export default function GameDetails() {
                             </div>
                         </div>
 
-                        <div className="compatibility-card">
-                            <h3>¿Puedo jugarlo?</h3>
+                        <section className="compatibility-card" aria-labelledby="compat-title">
+                            <h3 id="compat-title">¿Puedo jugarlo?</h3>
                             <div className="status-circle">
-                                <CheckCircle size={64} color="#4ade80" />
+                                <CheckCircle size={64} color="#4ade80" aria-hidden="true" />
                             </div>
                             <div className="status-text">
                                 Estado:
@@ -107,24 +108,24 @@ export default function GameDetails() {
                                     {game.compatibility.status}
                                 </span>
                             </div>
-                            <div className="spec-lines">
+                            <div className="spec-lines" aria-label="Estado de componentes">
                                 <div className="spec-line">
                                     <small>CPU</small>
                                     <span>{game.compatibility.cpu}</span>
-                                    <div className="bar green"></div>
+                                    <div className="bar green" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
                                 </div>
                                 <div className="spec-line">
                                     <small>GPU</small>
                                     <span>{game.compatibility.gpu}</span>
-                                    <div className="bar green"></div>
+                                    <div className="bar green" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
                                 </div>
                                 <div className="spec-line">
                                     <small>RAM</small>
                                     <span>{game.compatibility.ram}</span>
-                                    <div className="bar green"></div>
+                                    <div className="bar green" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
                                 </div>
                             </div>
-                        </div>
+                        </section>
                     </div>
 
                     <div className="synopsis-box">
@@ -133,29 +134,38 @@ export default function GameDetails() {
                         </p>
                     </div>
 
-                    <div className="reviews-section">
+                    <section className="reviews-section" aria-labelledby="reviews-title">
                         <div className="reviews-header">
-                            <h2>Reseñas de la comunidad</h2>
+                            <h2 id="reviews-title">Reseñas de la comunidad</h2>
                             <div className="reviews-controls">
-                                <span>Todas <ChevronDown size={14} /></span>
-                                <span>Más recientes <ChevronDown size={14} /></span>
+                                <button aria-label="Filtrar reseñas">Todas <ChevronDown size={14} aria-hidden="true" /></button>
+                                <button aria-label="Ordenar reseñas">Más recientes <ChevronDown size={14} aria-hidden="true" /></button>
                                 <button
                                     className="new-review-btn"
                                     onClick={() => setIsModalOpen(true)}
+                                    aria-haspopup="dialog"
                                 >
-                                    <MessageSquare size={16} /> Nueva reseña
+                                    <MessageSquare size={16} aria-hidden="true" /> Nueva reseña
                                 </button>
                             </div>
                         </div>
 
-                        <div className="tabs">
+                        <div className="tabs" role="tablist" aria-label="Categorías de reseñas">
                             <button
+                                role="tab"
+                                aria-selected={activeTab === 'artistic'}
+                                aria-controls="artistic-panel"
+                                id="tab-artistic"
                                 className={activeTab === 'artistic' ? 'tab active' : 'tab'}
                                 onClick={() => setActiveTab('artistic')}
                             >
                                 Reseñas artísticas
                             </button>
                             <button
+                                role="tab"
+                                aria-selected={activeTab === 'technical'}
+                                aria-controls="technical-panel"
+                                id="tab-technical"
                                 className={activeTab === 'technical' ? 'tab active' : 'tab'}
                                 onClick={() => setActiveTab('technical')}
                             >
@@ -163,37 +173,45 @@ export default function GameDetails() {
                             </button>
                         </div>
 
-                        <div className="reviews-grid">
-                            {game.reviews.map((review, i) => (
-                                <div key={i} className="review-card">
-                                    <div className="review-user">
-                                        <User size={24} />
-                                        <div>
-                                            <strong>{review.user}</strong>
-                                            <div className="user-pc">{review.specs}</div>
+                        <div
+                            id={`${activeTab}-panel`}
+                            role="tabpanel"
+                            aria-labelledby={`tab-${activeTab}`}
+                        >
+
+                            <div className="reviews-grid">
+                                {game.reviews.map((review, i) => (
+                                    <div key={i} className="review-card">
+                                        <div className="review-user">
+                                            <User size={24} aria-hidden="true" />
+                                            <div>
+                                                <strong>{review.user}</strong>
+                                                <div className="user-pc">{review.specs}</div>
+                                            </div>
                                         </div>
+                                        <div className="review-stars">
+                                            {[...Array(5)].map((_, j) => (
+                                                <Star
+                                                    key={j}
+                                                    size={14}
+                                                    fill={j < review.rating ? "var(--primary-purple)" : 'transparent'}
+                                                    stroke="var(--primary-purple)"
+                                                    aria-hidden="true"
+                                                />
+                                            ))}
+                                            <span className="review-date">{review.date}</span>
+                                        </div>
+                                        <p className="review-text">{review.content}</p>
                                     </div>
-                                    <div className="review-stars">
-                                        {[...Array(5)].map((_, j) => (
-                                            <Star
-                                                key={j}
-                                                size={14}
-                                                fill={j < review.rating ? 'gold' : 'transparent'}
-                                                stroke="gold"
-                                            />
-                                        ))}
-                                        <span className="review-date">{review.date}</span>
-                                    </div>
-                                    <p className="review-text">{review.content}</p>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
-                    </div>
+                    </section>
 
                     <div style={{ textAlign: 'center', margin: '20px 0' }}>
                         <button className="load-more-btn">Cargar más reseñas</button>
                     </div>
-                </div>
+                </main>
             </div>
 
             <ReviewModal

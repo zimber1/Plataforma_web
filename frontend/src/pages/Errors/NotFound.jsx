@@ -8,17 +8,17 @@ export default function NotFound() {
     return (
         <div className="error-page">
             <Navbar />
-            <div className="error-content">
-                <Ghost size={120} color="var(--primary-purple)" className="error-icon" />
+            <main className="error-content" id="main-content" tabIndex="-1">
+                <Ghost size={120} color="var(--primary-purple)" className="error-icon" aria-hidden="true" />
                 <h1 className="error-code">404</h1>
                 <h2 className="error-message">¡Página no encontrada!</h2>
                 <p className="error-description">
                     Parece que has entrado en una zona sin renderizar. El nivel que buscas no existe o ha sido eliminado.
                 </p>
-                <Link to="/" className="back-home-btn">
-                    <Home size={20} /> Volver al Inicio
+                <Link to="/" className="back-home-btn" aria-label="Volver a la página de inicio">
+                    <Home size={20} aria-hidden="true" /> Volver al Inicio
                 </Link>
-            </div>
+            </main>
             <Footer />
         </div>
     )

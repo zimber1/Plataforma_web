@@ -23,6 +23,34 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Accessibility Utilities */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.focus\:not-sr-only:focus {
+  position: fixed;
+  width: auto;
+  height: auto;
+  clip: auto;
+  margin: 0;
+  overflow: visible;
+  white-space: normal;
+}
+
+:focus-visible {
+  outline: 2px solid var(--primary-purple);
+  outline-offset: 4px;
+}
+
 .app-container {
   min-height: 100vh;
   padding: 20px 40px;
