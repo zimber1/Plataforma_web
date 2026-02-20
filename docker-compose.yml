@@ -5,8 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - "3001:3000"
+    # No host port mapping for frontend — it's only used internally in the compose network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000"]
@@ -40,8 +39,7 @@ services:
       - ./backend/users-service:/usr/src/app
       - /usr/src/app/node_modules
     command: sh -c "npm install --no-audit --no-fund || true && node index.js"
-    ports:
-      - "3001:3000"
+    # No host port mapping for users-service (internal only)
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
@@ -62,8 +60,7 @@ services:
       - ./backend/catalog-service:/usr/src/app
       - /usr/src/app/node_modules
     command: sh -c "npm install --no-audit --no-fund || true && node index.js"
-    ports:
-      - "3002:3000"
+    # No host port mapping for catalog-service (internal only)
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
@@ -82,8 +79,7 @@ services:
       - ./backend/reviews-service:/usr/src/app
       - /usr/src/app/node_modules
     command: sh -c "npm install --no-audit --no-fund || true && node index.js"
-    ports:
-      - "3003:3000"
+    # No host port mapping for reviews-service (internal only)
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
@@ -102,8 +98,7 @@ services:
     restart: unless-stopped
     volumes:
       - mongo-data:/data/db
-    ports:
-      - "27017:27017"
+    # Do not bind Mongo to host in CI to avoid port conflicts; services access it via the network
     healthcheck:
       test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
       interval: 10s

@@ -154,7 +154,10 @@ jobs:
           EOF
 
       - name: Start services with docker compose
-        run: docker compose up -d --build
+        run: |
+          # Ensure any previous compose leftovers are removed to avoid port binding conflicts
+          docker compose down --volumes --remove-orphans || true
+          docker compose up -d --build
 
       - name: Wait for API Gateway health
         run: |
