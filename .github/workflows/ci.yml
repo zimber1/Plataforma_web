@@ -109,7 +109,7 @@ jobs:
         env:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
         run: |
-          npm ci --legacy-peer-deps
+          npm install --legacy-peer-deps
           npm run e2e:ci
 
       - name: Upload build artifact
@@ -169,9 +169,9 @@ jobs:
         env:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
         run: |
-          npm ci --legacy-peer-deps
+          npm install --legacy-peer-deps
           cd e2e
-          npm ci
+          npm install --legacy-peer-deps
           npm run install-browsers
           npm test
 
