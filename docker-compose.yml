@@ -22,9 +22,9 @@ services:
     volumes:
       - ./backend/api-gateway:/usr/src/app
       - /usr/src/app/node_modules
-    command: sh -c "npm install --no-audit --no-fund || true && node server.js"
+    command: sh -c "npm install --no-audit --no-fund || true && node index.js"
     ports:
-      - "3002:3000"
+      - "3000:3000"
     restart: unless-stopped
     depends_on:
       - users-service
@@ -41,13 +41,17 @@ services:
       - /usr/src/app/node_modules
     command: sh -c "npm install --no-audit --no-fund || true && node index.js"
     ports:
-      - "3003:3000"
+      - "3001:3000"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
       interval: 20s
       timeout: 5s
       retries: 3
+    environment:
+      - MONGO_URI=${MONGO_URI:-mongodb://mongo:27017/plataforma}
+    depends_on:
+      - mongo
     networks:
       - plataforma_net
 
@@ -59,13 +63,15 @@ services:
       - /usr/src/app/node_modules
     command: sh -c "npm install --no-audit --no-fund || true && node index.js"
     ports:
-      - "3004:3000"
+      - "3002:3000"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
       interval: 20s
       timeout: 5s
       retries: 3
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
     networks:
       - plataforma_net
 
@@ -77,16 +83,39 @@ services:
       - /usr/src/app/node_modules
     command: sh -c "npm install --no-audit --no-fund || true && node index.js"
     ports:
-      - "3005:3000"
+      - "3003:3000"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
       interval: 20s
       timeout: 5s
       retries: 3
+    environment:
+      - MONGO_URI=${MONGO_URI:-mongodb://mongo:27017/plataforma}
+    depends_on:
+      - mongo
+    networks:
+      - plataforma_net
+
+  mongo:
+    image: mongo:6
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - "27017:27017"
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - plataforma_net
 
 networks:
   plataforma_net:
     driver: bridge
+
+volumes:
+  mongo-data:
+    driver: local

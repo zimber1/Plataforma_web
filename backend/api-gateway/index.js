@@ -7,8 +7,41 @@ const errorHandler = require('../shared/errors/errorHandler');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Structured logger (pino). If not installed, fall back to console.
+let logger;
+try {
+    const pino = require('pino');
+    logger = pino({ level: process.env.LOG_LEVEL || 'info', prettyPrint: process.env.NODE_ENV === 'development' });
+} catch (e) {
+    logger = console;
+}
+
+// Service URLs should come from environment in production
+const USERS_SERVICE_URL = process.env.USERS_SERVICE_URL || 'http://localhost:3001';
+const CATALOG_SERVICE_URL = process.env.CATALOG_SERVICE_URL || 'http://localhost:3002';
+const REVIEWS_SERVICE_URL = process.env.REVIEWS_SERVICE_URL || 'http://localhost:3003';
+
 app.use(cors());
 app.use(express.json());
+
+// Optional dev testing middleware: simulate latency and failures via env
+const SIM_LATENCY = parseInt(process.env.SIMULATE_LATENCY_MS || '0', 10);
+const SIM_FAIL_RATE = parseInt(process.env.SIMULATE_FAIL_RATE || '0', 10); // 0-100
+if (SIM_LATENCY > 0 || SIM_FAIL_RATE > 0) {
+    app.use(async (req, res, next) => {
+        if (SIM_LATENCY > 0) {
+            await new Promise(r => setTimeout(r, SIM_LATENCY));
+        }
+        if (SIM_FAIL_RATE > 0) {
+            const r = Math.random() * 100;
+            if (r < SIM_FAIL_RATE) {
+                logger && logger.warn ? logger.warn({ path: req.path, r }, 'Simulated failure') : console.warn('Simulated failure', req.path);
+                return res.status(503).json({ success: false, msg: 'Simulated service unavailable (for testing)' });
+            }
+        }
+        next();
+    });
+}
 
 // Rate limiting general - bastante permisivo
 const generalLimiter = rateLimit({
@@ -39,7 +72,7 @@ app.use(generalLimiter);
 // 1. REGISTRO
 app.post('/api/auth/register', authLimiter, async (req, res) => {
     try {
-        const response = await axios.post('http://localhost:3001/api/auth/register', req.body);
+        const response = await axios.post(`${USERS_SERVICE_URL}/api/auth/register`, req.body);
         res.status(response.status).json(response.data);
     } catch (error) {
         if (error.response) {
@@ -53,7 +86,7 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
 // 2. LOGIN
 app.post('/api/auth/login', authLimiter, async (req, res) => {
     try {
-        const response = await axios.post('http://localhost:3001/api/auth/login', req.body);
+        const response = await axios.post(`${USERS_SERVICE_URL}/api/auth/login`, req.body);
         res.status(response.status).json(response.data);
     } catch (error) {
         if (error.response) {
@@ -70,9 +103,9 @@ app.get('/api/auth/me', async (req, res) => {
         // Extraemos explícitamente el token del request original
         const authHeader = req.headers['authorization'];
         
-        console.log("Token recibido en Gateway:", authHeader ? "Sí" : "No");
+        logger.info({ hasAuth: !!authHeader }, 'Token recibido en Gateway');
 
-        const response = await axios.get('http://localhost:3001/api/auth/me', {
+        const response = await axios.get(`${USERS_SERVICE_URL}/api/auth/me`, {
             headers: {
                 // Lo pasamos manualmente al microservicio
                 'Authorization': authHeader 
@@ -85,7 +118,7 @@ app.get('/api/auth/me', async (req, res) => {
             res.status(error.response.status).json(error.response.data);
         } else {
             // Error de red o timeout
-            console.error("Error Gateway -> Users:", error.message);
+            logger.error({ err: error.message }, 'Error Gateway -> Users');
             res.status(500).json({ msg: 'Error de conexión con Users Service' });
         }
     }
@@ -94,7 +127,7 @@ app.get('/api/auth/me', async (req, res) => {
 // Búsqueda de hardware con rate limiting
 app.get('/api/hardware/search', searchLimiter, async (req, res) => {
     try {
-        const url = `http://localhost:3001/api/hardware/search`;
+        const url = `${USERS_SERVICE_URL}/api/hardware/search`;
         const response = await axios({
             method: 'get',
             url,
@@ -114,7 +147,7 @@ app.get('/api/hardware/search', searchLimiter, async (req, res) => {
 // --- CATALOG SERVICE ---
 app.use('/api/games', async (req, res) => {
     try {
-        const url = `http://localhost:3002${req.originalUrl}`;
+        const url = `${CATALOG_SERVICE_URL}${req.originalUrl}`;
         const method = req.method.toLowerCase();
         
         // Pasamos Authorization si existe
@@ -142,7 +175,7 @@ app.use('/api/games', async (req, res) => {
 app.use('/api/reviews', async (req, res) => {
     try {
         // Redirigir a localhost:3003
-        const url = `http://localhost:3003${req.originalUrl}`;
+        const url = `${REVIEWS_SERVICE_URL}${req.originalUrl}`;
         const method = req.method.toLowerCase();
 
         const headers = {};
@@ -168,6 +201,28 @@ app.use('/api/reviews', async (req, res) => {
 // Middleware global de manejo de errores
 app.use(errorHandler);
 
+// Minimal health endpoint — returns gateway status and optional service checks
+app.get('/health', async (req, res) => {
+    const status = { status: 'ok', timestamp: new Date().toISOString(), services: {} };
+    const checkService = async (name, url) => {
+        try {
+            const resp = await axios.get(`${url}/health`, { timeout: 1500 });
+            status.services[name] = { up: resp.status >= 200 && resp.status < 300 };
+        } catch (e) {
+            status.services[name] = { up: false, error: e.message };
+        }
+    };
+
+    // attempt checks but don't fail gateway if services missing
+    await Promise.all([
+        checkService('users', USERS_SERVICE_URL).catch(() => {}),
+        checkService('catalog', CATALOG_SERVICE_URL).catch(() => {}),
+        checkService('reviews', REVIEWS_SERVICE_URL).catch(() => {}),
+    ]);
+
+    res.json(status);
+});
+
 app.listen(PORT, () => {
-    console.log(`API Gateway corriendo en puerto ${PORT}`);
+    logger.info({ port: PORT }, 'API Gateway corriendo');
 });

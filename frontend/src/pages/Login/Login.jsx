@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, User } from 'lucide-react'
+import { apiFetch } from '../../api'
 
 const validateEmail = (email) => {
     if (!email) return 'El email es requerido.'
@@ -24,6 +25,8 @@ export default function Login() {
     const [password, setPassword] = useState('')
     const [errors, setErrors] = useState({})
     const [submitted, setSubmitted] = useState(false)
+    const [loading, setLoading] = useState(false)
+    const [apiError, setApiError] = useState(null)
 
     const runValidation = () => {
         const e = {}
@@ -50,10 +53,24 @@ export default function Login() {
             return
         }
 
-        // Simulate successful login (frontend only)
-        // In real app, call API and handle errors accordingly
-        // Navigate to home on success
-        navigate('/')
+        // Try real API login; if network unreachable, fall back to simulated login for local dev
+        setLoading(true)
+        setApiError(null)
+        apiFetch('/api/auth/login', { method: 'POST', body: { email: email.trim(), password } })
+            .then((res) => {
+                setLoading(false)
+                // If API returns token/session, you should store it here (omitted)
+                navigate('/')
+            })
+            .catch((err) => {
+                setLoading(false)
+                setApiError(err.message || 'Error de autenticación')
+                // Fallback: if network error (no status) allow simulated login to continue for dev
+                if (!err.status) {
+                    console.warn('API no disponible, simulando login localmente')
+                    navigate('/')
+                }
+            })
     }
 
     const formInvalid = () => {

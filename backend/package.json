@@ -9,6 +9,7 @@
     "concurrently": "^9.2.1"
   },
   "dependencies": {
-    "openai": "^6.21.0"
+    "openai": "^6.21.0",
+    "pino": "^10.3.1"
   }
 }

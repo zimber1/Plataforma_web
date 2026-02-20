@@ -1,0 +1,22 @@
+{
+  "name": "plataforma-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "e2e": "node run.js"
+  },
+  "dependencies": {
+    "puppeteer": "^20.9.0"
+  }
+}
+{
+  "name": "e2e",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "run": "node run.js"
+  },
+  "dependencies": {
+    "puppeteer": "^21.3.8"
+  }
+}

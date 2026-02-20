@@ -35,6 +35,13 @@ app.use('/api/hardware', require('./routes/hardware'));
 // Health Check (Para ver si el servicio vive)
 app.get('/', (req, res) => res.send(`Users Service running on port ${PORT}`));
 
+// Health endpoint (JSON) used by gateway and orchestration checks
+app.get('/health', (req, res) => {
+  // Optionally include basic DB check (non-blocking)
+  const dbState = mongoose.connection.readyState; // 0 disconnected, 1 connected
+  res.json({ status: 'ok', service: 'users-service', dbConnected: dbState === 1 });
+});
+
 // Manejo global de errores
 const errorHandler = require('../shared/errors/errorHandler');
 app.use(errorHandler);

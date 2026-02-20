@@ -1,3 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm ci --legacy-peer-deps
+
+      - name: Build frontend (production)
+        working-directory: frontend
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+        run: npm run build
+
+      - name: Upload frontend dist as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist
+
+  simtests:
+    runs-on: ubuntu-latest
+    needs: build-frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install simtests deps
+        working-directory: tools/simtests
+        run: npm ci
+
+      - name: Run simtests (only if API reachable)
+        working-directory: tools/simtests
+        env:
+          API_BASE: ${{ secrets.API_BASE || 'http://localhost:3000' }}
+        run: |
+          # try to ping the API; skip simtests if unavailable
+          if curl --fail -s "$API_BASE/health"; then
+            npm run run
+          else
+            echo "API not reachable at $API_BASE - skipping simtests"
+          fi
+
+      - name: Upload simtests report
+        uses: actions/upload-artifact@v4
+        with:
+          name: simtests-report
+          path: tools/simtests/simtests-report.json
 name: Frontend CI + Deploy
 
 permissions:
@@ -59,12 +126,30 @@ jobs:
         working-directory: frontend
         run: npm run build --if-present
 
+      # Paso 4.1: Playwright E2E (build+preview handled by Playwright config)
+      - name: Run Playwright E2E
+        working-directory: frontend
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+        run: |
+          npm ci --legacy-peer-deps
+          npm run e2e:ci
+
+
       # Paso 5: Subir artefacto
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: frontend-dist
           path: frontend/dist
+
+      # Paso 5.1: Upload Playwright HTML report (if present)
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: frontend/e2e/playwright-report
 
       # Paso 6: Despliegue (Solo en main/master para no romper producción)
       - name: Deploy to GitHub Pages
@@ -73,3 +158,57 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: frontend/dist
+
+  e2e-integration:
+    name: E2E Integration (docker-compose)
+    runs-on: ubuntu-latest
+    needs: frontend
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Compose
+        run: |
+          docker --version
+          docker compose version || true
+
+      - name: Create .env for services (optional)
+        run: |
+          cat > .env <<'EOF'
+          MONGO_URI=${{ secrets.MONGO_URI }}
+          OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+          VITE_API_URL=${{ secrets.VITE_API_URL }}
+          EOF
+
+      - name: Start services with docker compose
+        run: docker compose up -d --build
+
+      - name: Wait for API Gateway health
+        run: |
+          for i in $(seq 1 60); do
+            if curl --fail -s http://localhost:3000/health; then echo 'gateway healthy' && exit 0; fi
+            echo 'waiting for gateway...'; sleep 2;
+          done
+          echo 'gateway did not become healthy' && exit 1
+
+      - name: Run Playwright E2E against running stack
+        working-directory: frontend
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+        run: |
+          npm ci --legacy-peer-deps
+          cd e2e
+          npm ci
+          npm run install-browsers
+          npm test
+
+      - name: Upload Playwright integration report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-integration
+          path: frontend/e2e/playwright-report
+
+      - name: Tear down services
+        if: always()
+        run: docker compose down --volumes

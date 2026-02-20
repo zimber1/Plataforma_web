@@ -1,0 +1,55 @@
+{
+  "timestamp": "2026-02-19T23:20:46.448Z",
+  "base": "http://localhost:3000",
+  "results": [
+    {
+      "path": "/api/auth/me",
+      "status": 503,
+      "ok": false,
+      "duration": 1544,
+      "msg": "Request failed with status code 503"
+    },
+    {
+      "path": "/api/games/1",
+      "status": 500,
+      "ok": false,
+      "duration": 1529,
+      "msg": "Request failed with status code 500"
+    },
+    {
+      "path": "/api/games/1",
+      "status": 500,
+      "ok": false,
+      "duration": 1505,
+      "msg": "Request failed with status code 500"
+    },
+    {
+      "path": "/api/games/1",
+      "status": 500,
+      "ok": false,
+      "duration": 1506,
+      "msg": "Request failed with status code 500"
+    },
+    {
+      "path": "/api/games/1",
+      "status": 503,
+      "ok": false,
+      "duration": 1514,
+      "msg": "Request failed with status code 503"
+    },
+    {
+      "path": "/api/games/1",
+      "status": 503,
+      "ok": false,
+      "duration": 1512,
+      "msg": "Request failed with status code 503"
+    },
+    {
+      "path": "/api/games/1",
+      "status": 503,
+      "ok": false,
+      "duration": 1512,
+      "msg": "Request failed with status code 503"
+    }
+  ]
+}

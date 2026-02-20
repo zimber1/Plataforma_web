@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Star, Settings, CheckCircle, ChevronDown, User, MessageSquare } from 'lucide-react'
-import gameDetails from '../../data/game_details.json'
+import fallbackGameDetails from '../../data/game_details.json'
+import { apiFetch } from '../../api'
 import Navbar from '../../components/Navbar/Navbar'
 import ReviewModal from '../../components/ReviewModal/ReviewModal'
 import Footer from '../../components/Footer/Footer'
@@ -11,9 +12,34 @@ export default function GameDetails() {
     const [activeTab, setActiveTab] = useState('artistic')
     const [isModalOpen, setIsModalOpen] = useState(false)
 
+    const [game, setGame] = useState(fallbackGameDetails)
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState(null)
+    const [attempt, setAttempt] = useState(0)
 
-    const game = gameDetails
     console.log('Game ID:', id)
+
+    React.useEffect(() => {
+        let mounted = true
+        if (!id) return
+
+        const fetchGame = async () => {
+            setLoading(true)
+            setError(null)
+            try {
+                const res = await apiFetch(`/api/games/${id}`)
+                if (mounted && res && res.data) setGame(res.data)
+                else if (mounted && res) setGame(res)
+            } catch (err) {
+                if (mounted) setError(err.message || 'Error al cargar datos')
+            } finally {
+                if (mounted) setLoading(false)
+            }
+        }
+
+        fetchGame()
+        return () => { mounted = false }
+    }, [id, attempt])
 
     return (
         <div className="game-page">
@@ -73,6 +99,18 @@ export default function GameDetails() {
 
                 {/* Centro Principal */}
                 <main className="main-center">
+                    {loading && (
+                        <div role="status" aria-live="polite" style={{ padding: '12px', textAlign: 'center' }}>
+                            <strong>Cargando información del juego...</strong>
+                        </div>
+                    )}
+
+                    {error && (
+                        <div role="alert" style={{ padding: '12px', textAlign: 'center', color: 'var(--error)' }}>
+                            <div>Ocurrió un error: {error}</div>
+                            <button onClick={() => setAttempt(a => a + 1)} style={{ marginTop: 8 }}>Reintentar</button>
+                        </div>
+                    )}
                     <nav className="breadcrumb" aria-label="Ruta de navegación">
                         <Link to="/">Inicio</Link> &gt; Juego &gt; {game.name}
                     </nav>

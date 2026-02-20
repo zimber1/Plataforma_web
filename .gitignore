@@ -1,0 +1,9 @@
+.env
+frontend/.env
+backend/.env
+node_modules/
+dist/
+build/
+/.vscode/
+/.idea/
+*.log
