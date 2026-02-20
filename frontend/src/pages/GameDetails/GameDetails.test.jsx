@@ -9,6 +9,11 @@ jest.mock('react-router-dom', () => ({
   Link: ({ children }) => <a href="#">{children}</a>
 }));
 
+// Mock the API client to avoid importing ESM-only syntax (import.meta) in tests
+jest.mock('../../api', () => ({
+  apiFetch: jest.fn(() => Promise.resolve({}))
+}));
+
 jest.mock('lucide-react', () => ({
   Star: () => <span data-testid="icon-star">★</span>,
   Settings: () => <span>⚙</span>,

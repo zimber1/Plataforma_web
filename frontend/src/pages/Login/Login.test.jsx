@@ -11,6 +11,11 @@ jest.mock('react-router-dom', () => ({
   useNavigate: () => jest.fn()
 }))
 
+// Mock the API client to avoid importing ESM-only syntax (import.meta) in tests
+jest.mock('../../api', () => ({
+  apiFetch: jest.fn(() => Promise.resolve({ success: true }))
+}))
+
 describe('Login component', () => {
   test('renders the form', () => {
     render(
