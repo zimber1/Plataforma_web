@@ -167,27 +167,54 @@ router.get('/latest', ensureToken, async (req, res) => {
 });
 
 // 3. MEJOR PUNTUADOS
+// 3. MEJOR PUNTUADOS
 router.get('/top-rated', ensureToken, async (req, res) => {
     try {
-        const response = await axios({
+        // 1. Obtenemos los 12 juegos con más jugadores en Steam (PopScore ID 5)
+        // Esto nos da los IDs de los juegos que REALMENTE se están jugando.
+        const popResponse = await axios({
+            url: "https://api.igdb.com/v4/popularity_primitives",
+            method: 'POST',
+            headers: {
+                'Client-ID': process.env.TWITCH_CLIENT_ID,
+                'Authorization': `Bearer ${accessToken}`,
+            },
+            data: `fields game_id, value; where popularity_type = 5; sort value desc; limit 12;`
+        });
+
+        const gameIds = popResponse.data.map(p => p.game_id);
+
+        if (gameIds.length === 0) {
+            return res.json({ success: true, data: [] });
+        }
+
+        // 2. Traemos los detalles de esos IDs. 
+        const gamesDetails = await axios({
             url: "https://api.igdb.com/v4/games",
             method: 'POST',
             headers: {
                 'Client-ID': process.env.TWITCH_CLIENT_ID,
                 'Authorization': `Bearer ${accessToken}`,
             },
-            data: `fields name, cover.url, total_rating; 
-                   where platforms = 6 & total_rating > 80 & cover != null; 
-                   sort total_rating desc; limit 12;`
+            data: `fields name, cover.url, total_rating, summary, first_release_date; 
+                   where id = (${gameIds.join(',')});`
         });
-        res.json({ success: true, data: response.data });
+
+        // Formateamos las imágenes a 720p (el tamaño "sweet spot" según tu doc)
+        const games = gamesDetails.data.map(game => ({
+            id: game.id,
+            name: game.name,
+            rating: game.total_rating ? Math.round(game.total_rating) : 'N/A',
+            cover: game.cover ? game.cover.url.replace('t_thumb', 't_720p') : null,
+            summary: game.summary,
+            year: game.first_release_date ? new Date(game.first_release_date * 1000).getFullYear() : 'N/A'
+        }));
+
+        res.json({ success: true, data: games });
+
     } catch (err) {
-        console.error('IGDB error:', err.response ? err.response.data : err);
-        if (err.response && err.response.status >= 400 && err.response.status < 500) {
-            res.status(err.response.status).json({ success: false, msg: 'Error en la consulta a IGDB (4xx)', error: err.response.data });
-        } else {
-            res.status(500).json({ success: false, msg: 'Error interno al buscar juegos' });
-        }
+        console.error('Error detallado:', err.response?.data || err.message);
+        res.status(500).json({ success: false, msg: 'Error al conectar con IGDB PopScore' });
     }
 });
 
