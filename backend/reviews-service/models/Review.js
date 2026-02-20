@@ -12,7 +12,7 @@ const reviewSchema = new mongoose.Schema({
     pcSpecs: {
         cpu: { type: String, default: 'N/A' },
         gpu: { type: String, default: 'N/A' },
-        ram: { type: Number, default: 0 }, // o String si prefieres
+        ram: { type: String, default: 0 },
         os: { type: String, default: 'N/A' }
     }
 }, {
