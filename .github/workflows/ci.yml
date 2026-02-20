@@ -5,9 +5,14 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build-frontend:
+    name: Build Frontend
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -34,6 +39,7 @@ jobs:
           path: frontend/dist
 
   simtests:
+    name: Simulated Resilience Tests
     runs-on: ubuntu-latest
     needs: build-frontend
     steps:
@@ -53,7 +59,6 @@ jobs:
         env:
           API_BASE: ${{ secrets.API_BASE || 'http://localhost:3000' }}
         run: |
-          # try to ping the API; skip simtests if unavailable
           if curl --fail -s "$API_BASE/health"; then
             npm run run
           else
@@ -65,37 +70,14 @@ jobs:
         with:
           name: simtests-report
           path: tools/simtests/simtests-report.json
-name: Frontend CI + Deploy
 
-permissions:
-  contents: write
-
-on:
-  push:
-    branches:
-      - main
-      - master
-      - '**' # <--- ESTO ES NUEVO: Permite que corra en CUALQUIER rama (feature, fix, etc.)
-    paths:
-      - 'frontend/**'
-      - 'frontend/package.json'
-      - 'package.json'
-      - '.github/workflows/**' # <--- NUEVO: Para que se active si editas este archivo
-  pull_request:
-    branches: [ main, master ]
-    paths:
-      - 'frontend/**'
-  workflow_dispatch:
-
-jobs:
   frontend:
     name: Build, Lint and Deploy Frontend
     runs-on: ubuntu-latest
-
+    needs: build-frontend
     strategy:
       matrix:
         node-version: [20.x]
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -105,28 +87,23 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      # Paso 1: Instalación
       - name: Install dependencies
         run: npm install --legacy-peer-deps --no-audit --no-fund
         working-directory: frontend
 
-      # Paso 2: Tests de Interacción
       - name: Run Interaction Tests
         run: npm test
         working-directory: frontend
 
-      # Paso 3: Lint 
       - name: Lint
         working-directory: frontend
         run: npm run lint --if-present
         continue-on-error: true
 
-      # Paso 4: Construcción
       - name: Build
         working-directory: frontend
         run: npm run build --if-present
 
-      # Paso 4.1: Playwright E2E (build+preview handled by Playwright config)
       - name: Run Playwright E2E
         working-directory: frontend
         env:
@@ -135,15 +112,12 @@ jobs:
           npm ci --legacy-peer-deps
           npm run e2e:ci
 
-
-      # Paso 5: Subir artefacto
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: frontend-dist
           path: frontend/dist
 
-      # Paso 5.1: Upload Playwright HTML report (if present)
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v4
@@ -151,7 +125,6 @@ jobs:
           name: playwright-report
           path: frontend/e2e/playwright-report
 
-      # Paso 6: Despliegue (Solo en main/master para no romper producción)
       - name: Deploy to GitHub Pages
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
         uses: peaceiris/actions-gh-pages@v4
