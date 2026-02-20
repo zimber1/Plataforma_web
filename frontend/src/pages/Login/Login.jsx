@@ -1,11 +1,10 @@
 import React, { useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, User } from 'lucide-react'
-import { apiFetch } from '../../api'
+import { ArrowLeft, User, Loader } from 'lucide-react'
+import { useAuth } from '../../context/AuthContext'
 
 const validateEmail = (email) => {
     if (!email) return 'El email es requerido.'
-    // simple email regex
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!re.test(email)) return 'Formato de email inválido.'
     return ''
@@ -18,6 +17,7 @@ const validatePassword = (password) => {
 
 export default function Login() {
     const navigate = useNavigate()
+    const { loginUser, isLoggedIn } = useAuth()
     const emailRef = useRef(null)
     const passwordRef = useRef(null)
 
@@ -28,6 +28,11 @@ export default function Login() {
     const [loading, setLoading] = useState(false)
     const [apiError, setApiError] = useState(null)
 
+    // Redirigir si ya está logueado
+    React.useEffect(() => {
+        if (isLoggedIn) navigate('/')
+    }, [isLoggedIn, navigate])
+
     const runValidation = () => {
         const e = {}
         const emailError = validateEmail(email.trim())
@@ -37,40 +42,29 @@ export default function Login() {
         return e
     }
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault()
         setSubmitted(true)
         const eErrors = runValidation()
         setErrors(eErrors)
 
         if (Object.keys(eErrors).length > 0) {
-            // focus first invalid field
-            if (eErrors.email) {
-                emailRef.current?.focus()
-            } else if (eErrors.password) {
-                passwordRef.current?.focus()
-            }
+            if (eErrors.email) emailRef.current?.focus()
+            else if (eErrors.password) passwordRef.current?.focus()
             return
         }
 
-        // Try real API login; if network unreachable, fall back to simulated login for local dev
         setLoading(true)
         setApiError(null)
-        apiFetch('/api/auth/login', { method: 'POST', body: { email: email.trim(), password } })
-            .then((res) => {
-                setLoading(false)
-                // If API returns token/session, you should store it here (omitted)
-                navigate('/')
-            })
-            .catch((err) => {
-                setLoading(false)
-                setApiError(err.message || 'Error de autenticación')
-                // Fallback: if network error (no status) allow simulated login to continue for dev
-                if (!err.status) {
-                    console.warn('API no disponible, simulando login localmente')
-                    navigate('/')
-                }
-            })
+
+        try {
+            await loginUser(email.trim(), password)
+            navigate('/')
+        } catch (err) {
+            setApiError(err.message || 'Error de autenticación')
+        } finally {
+            setLoading(false)
+        }
     }
 
     const formInvalid = () => {
@@ -84,7 +78,7 @@ export default function Login() {
                 <div className="logo">
                     <img src="/juego-de-arcade.png" alt="Logo" style={{ height: '32px', width: 'auto' }} />
                 </div>
-                <button className="back-button" onClick={() => navigate('/') } aria-label="Volver al inicio">
+                <button className="back-button" onClick={() => navigate('/')} aria-label="Volver al inicio">
                     <ArrowLeft size={24} color="var(--primary-purple)" />
                 </button>
             </header>
@@ -95,6 +89,12 @@ export default function Login() {
                 </div>
 
                 <form className="auth-form" onSubmit={handleSubmit} noValidate role="form">
+                    {apiError && (
+                        <div role="alert" style={{ padding: '12px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '8px', color: '#ef4444', fontSize: '14px', textAlign: 'center' }}>
+                            {apiError}
+                        </div>
+                    )}
+
                     <div className="form-group">
                         <label htmlFor="email">Email</label>
                         <input
@@ -106,9 +106,10 @@ export default function Login() {
                             onChange={(ev) => setEmail(ev.target.value)}
                             aria-invalid={errors.email ? 'true' : 'false'}
                             aria-describedby={errors.email ? 'email-error' : undefined}
+                            disabled={loading}
                         />
                         {errors.email && (
-                            <div id="email-error" role="alert" style={{ color: 'var(--error)', marginTop: '4px' }}>
+                            <div id="email-error" role="alert" style={{ color: 'var(--error, #ef4444)', marginTop: '4px', fontSize: '13px' }}>
                                 {errors.email}
                             </div>
                         )}
@@ -125,19 +126,28 @@ export default function Login() {
                             onChange={(ev) => setPassword(ev.target.value)}
                             aria-invalid={errors.password ? 'true' : 'false'}
                             aria-describedby={errors.password ? 'password-error' : undefined}
+                            disabled={loading}
                         />
                         {errors.password && (
-                            <div id="password-error" role="alert" style={{ color: 'var(--error)', marginTop: '4px' }}>
+                            <div id="password-error" role="alert" style={{ color: 'var(--error, #ef4444)', marginTop: '4px', fontSize: '13px' }}>
                                 {errors.password}
                             </div>
                         )}
                     </div>
 
-                    <button type="submit" className="auth-submit-btn" disabled={formInvalid()} aria-disabled={formInvalid()}>
-                        Inició Sesión
+                    <button
+                        type="submit"
+                        className="auth-submit-btn"
+                        disabled={formInvalid() || loading}
+                        aria-disabled={formInvalid() || loading}
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                    >
+                        {loading && <Loader size={18} style={{ animation: 'spin 1s linear infinite' }} aria-hidden="true" />}
+                        {loading ? 'Iniciando...' : 'Iniciar Sesión'}
                     </button>
+
                     {submitted && Object.keys(errors).length > 0 && (
-                        <div role="alert" style={{ marginTop: '8px', color: 'var(--error)' }}>
+                        <div role="alert" style={{ marginTop: '8px', color: 'var(--error, #ef4444)', fontSize: '13px', textAlign: 'center' }}>
                             Por favor corrige los errores en el formulario.
                         </div>
                     )}
