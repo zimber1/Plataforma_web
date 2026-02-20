@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { Star, Settings, CheckCircle, XCircle, AlertCircle, ChevronDown, User, MessageSquare, Loader, Cpu, Monitor, HardDrive } from 'lucide-react'
+import { Star, Settings, CheckCircle, XCircle, AlertCircle, User, MessageSquare, Loader, Cpu, Monitor, HardDrive } from 'lucide-react'
 import { getGameDetails, analyzeCompatibility, getIgdbImageUrl, getIgdbScreenshotUrl } from '../../api'
 import { getGameReviews } from '../../api/reviewsService'
 import { useAuth } from '../../context/AuthContext'
 import Navbar from '../../components/Navbar/Navbar'
 import ReviewModal from '../../components/ReviewModal/ReviewModal'
+import ImageGallery from '../../components/Common/ImageGallery'
 import Footer from '../../components/Footer/Footer'
 
 export default function GameDetails() {
@@ -15,23 +16,27 @@ export default function GameDetails() {
     const [activeTab, setActiveTab] = useState('artistic')
     const [isModalOpen, setIsModalOpen] = useState(false)
 
+    // Estado de la galeria de imagenes
+    const [isGalleryOpen, setIsGalleryOpen] = useState(false)
+    const [galleryIndex, setGalleryIndex] = useState(0)
+
     // Estado del juego
     const [game, setGame] = useState(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
 
-    // Estado de reseñas
+    // Estado de resenas
     const [reviews, setReviews] = useState([])
     const [reviewStats, setReviewStats] = useState({ artistic: { average: 0, count: 0 }, technical: { average: 0, count: 0 } })
     const [reviewPage, setReviewPage] = useState(1)
     const [hasMoreReviews, setHasMoreReviews] = useState(false)
     const [loadingReviews, setLoadingReviews] = useState(false)
 
-    // Estado de análisis de IA
+    // Estado de analisis de IA
     const [analyzing, setAnalyzing] = useState(false)
     const [analysisResult, setAnalysisResult] = useState(null)
 
-    // ── Cargar juego ──────────────────────────────
+    // -- Cargar juego --
     useEffect(() => {
         let mounted = true
         if (!id) return
@@ -43,7 +48,7 @@ export default function GameDetails() {
                 const res = await getGameDetails(id)
                 if (mounted && res.data) {
                     setGame(res.data)
-                    // Si hay análisis cacheado, mostrarlo
+                    // Si hay analisis cacheado, mostrarlo
                     if (res.data.compatibility?.hasCache && res.data.compatibility?.analysis) {
                         setAnalysisResult(res.data.compatibility.analysis)
                     }
@@ -59,7 +64,7 @@ export default function GameDetails() {
         return () => { mounted = false }
     }, [id])
 
-    // ── Cargar reseñas ────────────────────────────
+    // -- Cargar resenas --
     const fetchReviews = useCallback(async (page = 1, append = false) => {
         if (!id) return
         setLoadingReviews(true)
@@ -72,7 +77,7 @@ export default function GameDetails() {
                 setReviewPage(page)
             }
         } catch (err) {
-            console.warn('Error cargando reseñas:', err.message)
+            console.warn('Error cargando resenas:', err.message)
         } finally {
             setLoadingReviews(false)
         }
@@ -82,7 +87,7 @@ export default function GameDetails() {
         fetchReviews(1)
     }, [fetchReviews])
 
-    // ── Analizar compatibilidad ───────────────────
+    // -- Analizar compatibilidad --
     const handleAnalyze = async () => {
         if (!isLoggedIn || !id) return
         setAnalyzing(true)
@@ -96,18 +101,24 @@ export default function GameDetails() {
         }
     }
 
-    // ── Callback cuando se publica una reseña ─────
+    // -- Callback cuando se publica una resena --
     const handleReviewPublished = () => {
         setIsModalOpen(false)
-        fetchReviews(1, false) // Recargar reseñas
+        fetchReviews(1, false)
     }
 
-    // ── Cargar más reseñas ────────────────────────
+    // -- Cargar mas resenas --
     const handleLoadMore = () => {
         fetchReviews(reviewPage + 1, true)
     }
 
-    // ── Loading / Error ───────────────────────────
+    // -- Abrir galeria con un indice especifico --
+    const openGallery = (index = 0) => {
+        setGalleryIndex(index)
+        setIsGalleryOpen(true)
+    }
+
+    // -- Pantalla de carga --
     if (loading) {
         return (
             <div className="game-page">
@@ -119,6 +130,7 @@ export default function GameDetails() {
         )
     }
 
+    // -- Pantalla de error --
     if (error || !game) {
         return (
             <div className="game-page">
@@ -135,7 +147,7 @@ export default function GameDetails() {
         )
     }
 
-    // ── Extraer datos del juego ───────────────────
+    // -- Extraer datos del juego --
     const coverUrl = game.cover?.url ? getIgdbImageUrl(game.cover.url, '720p') : game.image || ''
     const gameName = game.name || 'Sin nombre'
     const summary = game.summary || game.synopsis || ''
@@ -147,11 +159,14 @@ export default function GameDetails() {
     const rating = game.total_rating ? Math.round(game.total_rating) : null
     const screenshots = game.screenshots || []
 
+    // URLs de screenshots para la galeria
+    const screenshotUrls = screenshots.map(s => getIgdbScreenshotUrl(s.url, '720p'))
+
     // Requisitos de Steam
     const steamReqs = game.requirements?.pc_requirements
     const compatibility = game.compatibility
 
-    // Filtrar reseñas por tab activo
+    // Filtrar resenas por tab activo
     const filteredReviews = reviews.filter(r => r.type === activeTab)
 
     return (
@@ -160,7 +175,7 @@ export default function GameDetails() {
 
             <div className="game-content-container" id="main-content" tabIndex="-1">
                 {/* Lateral Izquierdo */}
-                <aside className="sidebar-left" aria-label="Información lateral">
+                <aside className="sidebar-left" aria-label="Informacion lateral">
                     <h1 className="game-title-main">{gameName}</h1>
                     <img
                         src={coverUrl}
@@ -170,14 +185,14 @@ export default function GameDetails() {
 
                     <div className="score-section" aria-label="Puntuaciones">
                         <div className="score-block">
-                            <span className="score-label">Puntuación artística</span>
+                            <span className="score-label">Puntuacion artistica</span>
                             <div className="score-value">
                                 <Star size={24} fill="var(--primary-purple)" stroke="var(--primary-purple)" aria-hidden="true" />
                                 <span>{reviewStats.artistic.count > 0 ? `${reviewStats.artistic.average}/5` : (rating ? `${rating}/100` : 'N/A')}</span>
                             </div>
                         </div>
                         <div className="score-block">
-                            <span className="score-label">Puntuación técnica</span>
+                            <span className="score-label">Puntuacion tecnica</span>
                             <div className="score-value">
                                 <Settings size={24} color="var(--primary-purple)" aria-hidden="true" />
                                 <span>{reviewStats.technical.count > 0 ? `${reviewStats.technical.average}/5` : 'N/A'}</span>
@@ -186,7 +201,7 @@ export default function GameDetails() {
                     </div>
 
                     <section className="info-box" aria-labelledby="game-info-title">
-                        <h3 id="game-info-title">Información del juego</h3>
+                        <h3 id="game-info-title">Informacion del juego</h3>
                         {companies.length > 0 && <p>Desarrollador: {companies.join(', ')}</p>}
                         <p>Lanzamiento: {releaseDate}</p>
                         {rating && <p>Rating IGDB: {rating}/100</p>}
@@ -214,12 +229,21 @@ export default function GameDetails() {
 
                 {/* Centro Principal */}
                 <main className="main-center">
-                    <nav className="breadcrumb" aria-label="Ruta de navegación">
+                    <nav className="breadcrumb" aria-label="Ruta de navegacion">
                         <Link to="/">Inicio</Link> &gt; Juego &gt; {gameName}
                     </nav>
 
                     <div className="media-section">
-                        <div className="video-placeholder" role="img" aria-label="Galería de imágenes">
+                        {/* Area de capturas de pantalla - clickeable para abrir galeria */}
+                        <div
+                            className="video-placeholder"
+                            role="button"
+                            tabIndex="0"
+                            aria-label={`Ver galeria de imagenes de ${gameName}`}
+                            onClick={() => openGallery(0)}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') openGallery(0) }}
+                            style={{ cursor: 'pointer' }}
+                        >
                             <img
                                 src={screenshots.length > 0 ? getIgdbScreenshotUrl(screenshots[0].url, '720p') : coverUrl}
                                 alt=""
@@ -228,14 +252,14 @@ export default function GameDetails() {
                             />
                             {screenshots.length > 1 && (
                                 <div className="video-overlay">
-                                    <div className="plus-images">+{screenshots.length} imágenes</div>
+                                    <div className="plus-images">+{screenshots.length} imagenes</div>
                                 </div>
                             )}
                         </div>
 
                         {/* Tarjeta de compatibilidad */}
                         <section className="compatibility-card" aria-labelledby="compat-title">
-                            <h3 id="compat-title">¿Puedo jugarlo?</h3>
+                            <h3 id="compat-title">Puedo jugarlo?</h3>
 
                             {analysisResult ? (
                                 <>
@@ -268,7 +292,7 @@ export default function GameDetails() {
                                         <div style={{ padding: '20px 0' }}>
                                             <AlertCircle size={48} color="var(--text-secondary)" />
                                             <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '12px' }}>
-                                                <Link to="/login" style={{ color: 'var(--primary-purple)' }}>Inicia sesión</Link> para analizar la compatibilidad con tu PC
+                                                <Link to="/login" style={{ color: 'var(--primary-purple)' }}>Inicia sesion</Link> para analizar la compatibilidad con tu PC
                                             </p>
                                         </div>
                                     ) : (
@@ -312,10 +336,10 @@ export default function GameDetails() {
                         </div>
                     )}
 
-                    {/* Sección de reseñas */}
+                    {/* Seccion de resenas */}
                     <section className="reviews-section" aria-labelledby="reviews-title">
                         <div className="reviews-header">
-                            <h2 id="reviews-title">Reseñas de la comunidad</h2>
+                            <h2 id="reviews-title">Resenas de la comunidad</h2>
                             <div className="reviews-controls">
                                 {isLoggedIn && (
                                     <button
@@ -323,13 +347,13 @@ export default function GameDetails() {
                                         onClick={() => setIsModalOpen(true)}
                                         aria-haspopup="dialog"
                                     >
-                                        <MessageSquare size={16} aria-hidden="true" /> Nueva reseña
+                                        <MessageSquare size={16} aria-hidden="true" /> Nueva resena
                                     </button>
                                 )}
                             </div>
                         </div>
 
-                        <div className="tabs" role="tablist" aria-label="Categorías de reseñas">
+                        <div className="tabs" role="tablist" aria-label="Categorias de resenas">
                             <button
                                 role="tab"
                                 aria-selected={activeTab === 'artistic'}
@@ -338,7 +362,7 @@ export default function GameDetails() {
                                 className={activeTab === 'artistic' ? 'tab active' : 'tab'}
                                 onClick={() => setActiveTab('artistic')}
                             >
-                                Artísticas ({reviewStats.artistic.count})
+                                Artisticas ({reviewStats.artistic.count})
                             </button>
                             <button
                                 role="tab"
@@ -348,7 +372,7 @@ export default function GameDetails() {
                                 className={activeTab === 'technical' ? 'tab active' : 'tab'}
                                 onClick={() => setActiveTab('technical')}
                             >
-                                Técnicas ({reviewStats.technical.count})
+                                Tecnicas ({reviewStats.technical.count})
                             </button>
                         </div>
 
@@ -365,8 +389,8 @@ export default function GameDetails() {
 
                             {!loadingReviews && filteredReviews.length === 0 && (
                                 <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '30px' }}>
-                                    No hay reseñas {activeTab === 'artistic' ? 'artísticas' : 'técnicas'} aún.
-                                    {isLoggedIn && ' ¡Sé el primero en dejar una!'}
+                                    No hay resenas {activeTab === 'artistic' ? 'artisticas' : 'tecnicas'} aun.
+                                    {isLoggedIn && ' Se el primero en dejar una!'}
                                 </p>
                             )}
 
@@ -377,11 +401,27 @@ export default function GameDetails() {
                                             <User size={24} aria-hidden="true" />
                                             <div>
                                                 <strong>{review.username}</strong>
+                                                {/* Specs del usuario en la resena */}
                                                 {review.pcSpecs && (
-                                                    <div className="user-pc">
-                                                        {[review.pcSpecs.cpu, review.pcSpecs.gpu, review.pcSpecs.ram ? `${review.pcSpecs.ram}GB RAM` : null]
-                                                            .filter(Boolean)
-                                                            .join(' | ') || 'Sin specs'}
+                                                    <div className="review-specs-container">
+                                                        {review.pcSpecs.cpu && (
+                                                            <span className="review-spec-item">
+                                                                <Cpu size={10} aria-hidden="true" />
+                                                                {review.pcSpecs.cpu}
+                                                            </span>
+                                                        )}
+                                                        {review.pcSpecs.gpu && (
+                                                            <span className="review-spec-item">
+                                                                <Monitor size={10} aria-hidden="true" />
+                                                                {review.pcSpecs.gpu}
+                                                            </span>
+                                                        )}
+                                                        {review.pcSpecs.ram && (
+                                                            <span className="review-spec-item">
+                                                                <HardDrive size={10} aria-hidden="true" />
+                                                                {review.pcSpecs.ram}
+                                                            </span>
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>
@@ -416,19 +456,30 @@ export default function GameDetails() {
                                 style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
                             >
                                 {loadingReviews && <Loader size={16} style={{ animation: 'spin 1s linear infinite' }} />}
-                                Cargar más reseñas
+                                Cargar mas resenas
                             </button>
                         </div>
                     )}
                 </main>
             </div>
 
+            {/* Modal de resena con tipo predefinido segun pestana activa */}
             <ReviewModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 gameId={parseInt(id)}
                 onPublished={handleReviewPublished}
+                defaultType={activeTab}
             />
+
+            {/* Galeria de imagenes */}
+            <ImageGallery
+                isOpen={isGalleryOpen}
+                onClose={() => setIsGalleryOpen(false)}
+                images={screenshotUrls}
+                initialIndex={galleryIndex}
+            />
+
             <Footer />
         </div>
     )

@@ -1,24 +1,27 @@
 import React, { useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { User, EyeOff, Eye, Loader } from 'lucide-react'
+import { User, EyeOff, Eye, Loader, Cpu, Monitor, HardDrive } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
+import HardwareAutocomplete from '../../components/Common/HardwareAutocomplete'
+
+// -- Validaciones del formulario --
 
 const validateUsername = (val) => {
     if (!val) return 'El nombre de usuario es requerido.'
-    if (val.length < 3) return 'Mínimo 3 caracteres.'
+    if (val.length < 3) return 'Minimo 3 caracteres.'
     return ''
 }
 
 const validateEmail = (val) => {
     if (!val) return 'El email es requerido.'
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!re.test(val)) return 'Formato de email inválido.'
+    if (!re.test(val)) return 'Formato de email invalido.'
     return ''
 }
 
 const validatePassword = (val) => {
-    if (!val) return 'La contraseña es requerida.'
-    if (val.length < 6) return 'Mínimo 6 caracteres.'
+    if (!val) return 'La contrasena es requerida.'
+    if (val.length < 6) return 'Minimo 6 caracteres.'
     return ''
 }
 
@@ -39,7 +42,12 @@ export default function Register() {
     const [loading, setLoading] = useState(false)
     const [apiError, setApiError] = useState(null)
 
-    // Redirigir si ya está logueado
+    // Specs de PC (opcionales)
+    const [cpu, setCpu] = useState('')
+    const [gpu, setGpu] = useState('')
+    const [ram, setRam] = useState('')
+
+    // Redirigir si ya esta logueado
     React.useEffect(() => {
         if (isLoggedIn) navigate('/')
     }, [isLoggedIn, navigate])
@@ -72,11 +80,19 @@ export default function Register() {
         setApiError(null)
 
         try {
-            await registerUser({
+            // Armar payload con specs opcionales
+            const payload = {
                 username: username.trim(),
                 email: email.trim(),
                 password,
-            })
+            }
+
+            // Solo incluir pcSpecs si al menos un campo tiene valor
+            if (cpu || gpu || ram) {
+                payload.pcSpecs = { cpu, gpu, ram }
+            }
+
+            await registerUser(payload)
             navigate('/')
         } catch (err) {
             setApiError(err.message || 'Error al registrar')
@@ -94,11 +110,11 @@ export default function Register() {
                     <img src="/juego-de-arcade.png" alt="Logo" style={{ height: '32px', width: 'auto' }} />
                 </div>
                 <Link to="/login" className="btn-login" style={{ textDecoration: 'none' }}>
-                    Iniciar Sesión
+                    Iniciar Sesion
                 </Link>
             </header>
 
-            <div className="auth-card">
+            <div className="auth-card auth-card-wide">
                 <div className="auth-user-icon">
                     <User size={64} strokeWidth={1} color="var(--primary-purple)" />
                 </div>
@@ -110,78 +126,122 @@ export default function Register() {
                         </div>
                     )}
 
-                    <div className="form-group">
-                        <label htmlFor="username">NickName</label>
-                        <input
-                            id="username"
-                            ref={usernameRef}
-                            type="text"
-                            placeholder="Nombre de usuario"
-                            value={username}
-                            onChange={(ev) => setUsername(ev.target.value)}
-                            aria-invalid={errors.username ? 'true' : 'false'}
-                            aria-describedby={errors.username ? 'username-error' : undefined}
-                            disabled={loading}
-                        />
-                        {errors.username && (
-                            <div id="username-error" role="alert" style={{ color: '#ef4444', marginTop: '4px', fontSize: '13px' }}>
-                                {errors.username}
+                    {/* Seccion: Datos de cuenta */}
+                    <div className="register-section">
+                        <h3 className="register-section-title">Datos de cuenta</h3>
+                        <div className="register-fields">
+                            <div className="form-group">
+                                <label htmlFor="username">NickName</label>
+                                <input
+                                    id="username"
+                                    ref={usernameRef}
+                                    type="text"
+                                    placeholder="Nombre de usuario"
+                                    value={username}
+                                    onChange={(ev) => setUsername(ev.target.value)}
+                                    aria-invalid={errors.username ? 'true' : 'false'}
+                                    aria-describedby={errors.username ? 'username-error' : undefined}
+                                    disabled={loading}
+                                />
+                                {errors.username && (
+                                    <div id="username-error" role="alert" style={{ color: '#ef4444', marginTop: '4px', fontSize: '13px' }}>
+                                        {errors.username}
+                                    </div>
+                                )}
                             </div>
-                        )}
+
+                            <div className="form-group">
+                                <label htmlFor="reg-email">Email</label>
+                                <input
+                                    id="reg-email"
+                                    ref={emailRef}
+                                    type="email"
+                                    placeholder="Example@gmail.com"
+                                    value={email}
+                                    onChange={(ev) => setEmail(ev.target.value)}
+                                    aria-invalid={errors.email ? 'true' : 'false'}
+                                    aria-describedby={errors.email ? 'reg-email-error' : undefined}
+                                    disabled={loading}
+                                />
+                                {errors.email && (
+                                    <div id="reg-email-error" role="alert" style={{ color: '#ef4444', marginTop: '4px', fontSize: '13px' }}>
+                                        {errors.email}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="form-group">
+                                <label htmlFor="reg-password">Password</label>
+                                <div className="password-input-wrapper">
+                                    <input
+                                        id="reg-password"
+                                        ref={passwordRef}
+                                        type={showPw ? 'text' : 'password'}
+                                        placeholder="Minimo 6 caracteres"
+                                        value={password}
+                                        onChange={(ev) => setPassword(ev.target.value)}
+                                        aria-invalid={errors.password ? 'true' : 'false'}
+                                        aria-describedby={errors.password ? 'reg-pw-error' : undefined}
+                                        disabled={loading}
+                                    />
+                                    <button
+                                        type="button"
+                                        className="password-toggle"
+                                        onClick={() => setShowPw(!showPw)}
+                                        aria-label={showPw ? 'Ocultar contrasena' : 'Mostrar contrasena'}
+                                        style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                                    >
+                                        {showPw
+                                            ? <Eye size={18} color="var(--primary-purple)" />
+                                            : <EyeOff size={18} color="var(--primary-purple)" />
+                                        }
+                                    </button>
+                                </div>
+                                {errors.password && (
+                                    <div id="reg-pw-error" role="alert" style={{ color: '#ef4444', marginTop: '4px', fontSize: '13px' }}>
+                                        {errors.password}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="form-group">
-                        <label htmlFor="reg-email">Email</label>
-                        <input
-                            id="reg-email"
-                            ref={emailRef}
-                            type="email"
-                            placeholder="Example@gmail.com"
-                            value={email}
-                            onChange={(ev) => setEmail(ev.target.value)}
-                            aria-invalid={errors.email ? 'true' : 'false'}
-                            aria-describedby={errors.email ? 'reg-email-error' : undefined}
-                            disabled={loading}
-                        />
-                        {errors.email && (
-                            <div id="reg-email-error" role="alert" style={{ color: '#ef4444', marginTop: '4px', fontSize: '13px' }}>
-                                {errors.email}
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="form-group">
-                        <label htmlFor="reg-password">Password</label>
-                        <div className="password-input-wrapper">
-                            <input
-                                id="reg-password"
-                                ref={passwordRef}
-                                type={showPw ? 'text' : 'password'}
-                                placeholder="Mínimo 6 caracteres"
-                                value={password}
-                                onChange={(ev) => setPassword(ev.target.value)}
-                                aria-invalid={errors.password ? 'true' : 'false'}
-                                aria-describedby={errors.password ? 'reg-pw-error' : undefined}
+                    {/* Seccion: Specs de PC (opcional) */}
+                    <div className="register-section">
+                        <h3 className="register-section-title">
+                            <Cpu size={18} color="var(--primary-purple)" aria-hidden="true" />
+                            Specs de PC
+                            <span className="register-optional">(opcional)</span>
+                        </h3>
+                        <p className="register-specs-hint">
+                            Ingresa tus specs para obtener analisis de compatibilidad personalizados.
+                        </p>
+                        <div className="register-fields">
+                            <HardwareAutocomplete
+                                type="cpu"
+                                value={cpu}
+                                onChange={setCpu}
+                                label="Procesador (CPU)"
+                                placeholder="Ej: Ryzen 5 5600X..."
                                 disabled={loading}
                             />
-                            <button
-                                type="button"
-                                className="password-toggle"
-                                onClick={() => setShowPw(!showPw)}
-                                aria-label={showPw ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                                style={{ background: 'none', border: 'none', cursor: 'pointer' }}
-                            >
-                                {showPw
-                                    ? <Eye size={18} color="var(--primary-purple)" />
-                                    : <EyeOff size={18} color="var(--primary-purple)" />
-                                }
-                            </button>
+                            <HardwareAutocomplete
+                                type="gpu"
+                                value={gpu}
+                                onChange={setGpu}
+                                label="Tarjeta grafica (GPU)"
+                                placeholder="Ej: RTX 3060..."
+                                disabled={loading}
+                            />
+                            <HardwareAutocomplete
+                                type="ram"
+                                value={ram}
+                                onChange={setRam}
+                                label="Memoria RAM"
+                                placeholder="Ej: 16GB DDR4..."
+                                disabled={loading}
+                            />
                         </div>
-                        {errors.password && (
-                            <div id="reg-pw-error" role="alert" style={{ color: '#ef4444', marginTop: '4px', fontSize: '13px' }}>
-                                {errors.password}
-                            </div>
-                        )}
                     </div>
 
                     <button
@@ -203,7 +263,7 @@ export default function Register() {
                 </form>
 
                 <p className="auth-footer">
-                    ¿Ya tienes cuenta? <Link to="/login">Iniciar Sesión</Link>
+                    Ya tienes cuenta? <Link to="/login">Iniciar Sesion</Link>
                 </p>
             </div>
         </div>

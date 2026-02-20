@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { Star, Clock, TrendingUp, Loader } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Star, Clock, Loader } from 'lucide-react'
 import { getTopRatedGames, getLatestGames, getIgdbImageUrl } from '../../api'
 import Navbar from '../../components/Navbar/Navbar'
 import Footer from '../../components/Footer/Footer'
 
 export default function Home() {
-  const navigate = useNavigate()
-
   const [topRated, setTopRated] = useState([])
   const [latest, setLatest] = useState([])
   const [loadingTop, setLoadingTop] = useState(true)
@@ -15,7 +13,7 @@ export default function Home() {
   const [errorTop, setErrorTop] = useState(null)
   const [errorLatest, setErrorLatest] = useState(null)
 
-  // Cargar juegos mejor puntuados
+  // Cargar juegos mejor puntuados (nuevo endpoint PopScore)
   useEffect(() => {
     let mounted = true
     async function fetchTopRated() {
@@ -33,7 +31,7 @@ export default function Home() {
     return () => { mounted = false }
   }, [])
 
-  // Cargar últimos lanzamientos
+  // Cargar ultimos lanzamientos
   useEffect(() => {
     let mounted = true
     async function fetchLatest() {
@@ -51,10 +49,33 @@ export default function Home() {
     return () => { mounted = false }
   }, [])
 
+  /**
+   * Renderiza una tarjeta de juego.
+   * Compatible con ambos formatos de respuesta:
+   * - Formato nuevo (PopScore): { id, name, rating, cover (string URL), summary, year }
+   * - Formato anterior: { id, name, cover: { url }, total_rating, first_release_date }
+   */
   const renderGameCard = (game) => {
-    const coverUrl = game.cover?.url
-      ? getIgdbImageUrl(game.cover.url, 'cover_big')
-      : ''
+    // Determinar URL de la portada segun el formato
+    let coverUrl = ''
+    if (typeof game.cover === 'string') {
+      // Formato nuevo: cover ya es una URL directa (720p)
+      coverUrl = game.cover || ''
+    } else if (game.cover?.url) {
+      // Formato anterior: cover es un objeto con url
+      coverUrl = getIgdbImageUrl(game.cover.url, 'cover_big')
+    }
+
+    // Determinar rating segun el formato
+    const ratingValue = game.rating !== undefined ? game.rating : (game.total_rating ? Math.round(game.total_rating) : null)
+
+    // Determinar anio/fecha segun el formato
+    let dateDisplay = ''
+    if (game.year !== undefined) {
+      dateDisplay = game.year !== 'N/A' ? String(game.year) : ''
+    } else if (game.first_release_date) {
+      dateDisplay = new Date(game.first_release_date * 1000).toLocaleDateString('es-MX', { year: 'numeric', month: 'short' })
+    }
 
     return (
       <Link
@@ -73,15 +94,13 @@ export default function Home() {
           )}
           <div className="game-info">
             <h3 className="game-name">{game.name}</h3>
-            {game.total_rating && (
+            {ratingValue && ratingValue !== 'N/A' && (
               <p className="game-genre" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <Star size={12} aria-hidden="true" /> {Math.round(game.total_rating)}/100
+                <Star size={12} aria-hidden="true" /> {ratingValue}/100
               </p>
             )}
-            {game.first_release_date && (
-              <p className="game-author">
-                {new Date(game.first_release_date * 1000).toLocaleDateString('es-MX', { year: 'numeric', month: 'short' })}
-              </p>
+            {dateDisplay && (
+              <p className="game-author">{dateDisplay}</p>
             )}
           </div>
         </div>
@@ -89,6 +108,7 @@ export default function Home() {
     )
   }
 
+  // Renderizar una seccion completa (titulo + grid de tarjetas)
   const renderSection = (title, icon, games, loading, error, retryFn) => (
     <section className="section" aria-labelledby={`${title.replace(/\s/g, '-')}-title`}>
       <div className="section-header">
@@ -115,7 +135,7 @@ export default function Home() {
 
       {!loading && !error && games.length === 0 && (
         <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '20px' }}>
-          No se encontraron juegos en esta categoría.
+          No se encontraron juegos en esta categoria.
         </p>
       )}
 
@@ -141,7 +161,7 @@ export default function Home() {
         )}
 
         {renderSection(
-          'Últimos lanzamientos',
+          'Ultimos lanzamientos',
           <Clock className="icon-purple" size={28} aria-hidden="true" />,
           latest,
           loadingLatest,

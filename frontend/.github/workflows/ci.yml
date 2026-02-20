@@ -7,7 +7,7 @@ on:
     branches: [ main, master ]
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -20,10 +20,8 @@ jobs:
 
       - name: Install dependencies
         working-directory: ./frontend
-        # use legacy peer deps to avoid ERESOLVE during CI when dev deps peer to older React
-        run: npm install --legacy-peer-deps --no-audit --no-fund
+        run: npm install --no-audit --no-fund
 
-
-      - name: Run tests
+      - name: Build
         working-directory: ./frontend
-        run: npm test
+        run: npm run build

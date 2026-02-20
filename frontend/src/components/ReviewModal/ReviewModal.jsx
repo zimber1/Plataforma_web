@@ -1,24 +1,40 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Star, Loader } from 'lucide-react'
 import Modal from '../Common/Modal'
 import { upsertReview } from '../../api/reviewsService'
 import { useAuth } from '../../context/AuthContext'
 
-export default function ReviewModal({ isOpen, onClose, gameId, onPublished }) {
+/**
+ * ReviewModal - Modal para crear/editar una resena.
+ * 
+ * @param {boolean}  isOpen       - Si el modal esta abierto
+ * @param {function} onClose      - Callback al cerrar
+ * @param {number}   gameId       - ID del juego
+ * @param {function} onPublished  - Callback tras publicar exitosamente
+ * @param {string}   defaultType  - Tipo predefinido: 'artistic' o 'technical'
+ */
+export default function ReviewModal({ isOpen, onClose, gameId, onPublished, defaultType = 'artistic' }) {
     const { isLoggedIn } = useAuth()
-    const [reviewType, setReviewType] = useState('artistic')
+    const [reviewType, setReviewType] = useState(defaultType)
     const [rating, setRating] = useState(0)
     const [comment, setComment] = useState('')
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState(null)
 
+    // Sincronizar el tipo de resena cuando cambia el defaultType o se abre el modal
+    useEffect(() => {
+        if (isOpen) {
+            setReviewType(defaultType)
+        }
+    }, [isOpen, defaultType])
+
     const handlePublish = async () => {
         if (!isLoggedIn) {
-            setError('Debes iniciar sesión para publicar una reseña')
+            setError('Debes iniciar sesion para publicar una resena')
             return
         }
         if (rating === 0) {
-            setError('Selecciona una puntuación')
+            setError('Selecciona una puntuacion')
             return
         }
 
@@ -33,16 +49,16 @@ export default function ReviewModal({ isOpen, onClose, gameId, onPublished }) {
                 comment: comment.trim(),
             })
 
-            // Resetear form
+            // Resetear formulario
             setRating(0)
             setComment('')
-            setReviewType('artistic')
+            setReviewType(defaultType)
 
             // Notificar al padre
             if (onPublished) onPublished()
             else onClose()
         } catch (err) {
-            setError(err.message || 'Error al publicar la reseña')
+            setError(err.message || 'Error al publicar la resena')
         } finally {
             setLoading(false)
         }
@@ -59,7 +75,7 @@ export default function ReviewModal({ isOpen, onClose, gameId, onPublished }) {
         <Modal
             isOpen={isOpen}
             onClose={handleClose}
-            title="Crear nueva reseña"
+            title="Crear nueva resena"
         >
             {error && (
                 <div role="alert" style={{ padding: '10px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '8px', color: '#ef4444', fontSize: '13px', textAlign: 'center' }}>
@@ -68,7 +84,7 @@ export default function ReviewModal({ isOpen, onClose, gameId, onPublished }) {
             )}
 
             <div className="modal-row" role="group" aria-labelledby="review-type-label">
-                <span id="review-type-label">Tipo de reseña:</span>
+                <span id="review-type-label">Tipo de resena:</span>
                 <div className="type-buttons">
                     <button
                         className={reviewType === 'artistic' ? 'type-btn active' : 'type-btn'}
@@ -76,7 +92,7 @@ export default function ReviewModal({ isOpen, onClose, gameId, onPublished }) {
                         aria-pressed={reviewType === 'artistic'}
                         disabled={loading}
                     >
-                        Artística
+                        Artistica
                     </button>
                     <button
                         className={reviewType === 'technical' ? 'type-btn active' : 'type-btn'}
@@ -84,17 +100,17 @@ export default function ReviewModal({ isOpen, onClose, gameId, onPublished }) {
                         aria-pressed={reviewType === 'technical'}
                         disabled={loading}
                     >
-                        Técnica
+                        Tecnica
                     </button>
                 </div>
             </div>
 
             <div className="modal-row" role="group" aria-labelledby="rating-label">
-                <span id="rating-label">Puntuación:</span>
+                <span id="rating-label">Puntuacion:</span>
                 <div
                     className="star-rating"
                     role="radiogroup"
-                    aria-label="Puntuación en estrellas"
+                    aria-label="Puntuacion en estrellas"
                 >
                     {[1, 2, 3, 4, 5].map((s) => (
                         <button
@@ -127,11 +143,11 @@ export default function ReviewModal({ isOpen, onClose, gameId, onPublished }) {
             </div>
 
             <div className="modal-row">
-                <label htmlFor="review-text" className="sr-only">Escribe aquí tu reseña</label>
+                <label htmlFor="review-text" className="sr-only">Escribe aqui tu resena</label>
                 <textarea
                     id="review-text"
                     className="review-textarea"
-                    placeholder="Escribe aquí tu reseña (opcional, máx. 1000 caracteres)..."
+                    placeholder="Escribe aqui tu resena (opcional, max. 1000 caracteres)..."
                     aria-required="false"
                     maxLength={1000}
                     value={comment}
@@ -153,7 +169,7 @@ export default function ReviewModal({ isOpen, onClose, gameId, onPublished }) {
                     style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
                 >
                     {loading && <Loader size={14} style={{ animation: 'spin 1s linear infinite' }} />}
-                    {loading ? 'Publicando...' : 'Publicar reseña'}
+                    {loading ? 'Publicando...' : 'Publicar resena'}
                 </button>
             </div>
         </Modal>
