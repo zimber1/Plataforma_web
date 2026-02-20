@@ -165,6 +165,26 @@ app.use('/api/reviews', async (req, res) => {
     }
 });
 
+// ACTUALIZAR SPECS
+app.put('/api/auth/specs', async (req, res) => {
+    try {
+        const authHeader = req.headers['authorization'];
+        
+        const response = await axios.put('http://localhost:3001/api/auth/specs', req.body, {
+            headers: {
+                'Authorization': authHeader 
+            }
+        });
+        res.status(response.status).json(response.data);
+    } catch (error) {
+        if (error.response) {
+            res.status(error.response.status).json(error.response.data);
+        } else {
+            res.status(500).json({ msg: 'Error de conexión con Users Service' });
+        }
+    }
+});
+
 // Middleware global de manejo de errores
 app.use(errorHandler);
 
