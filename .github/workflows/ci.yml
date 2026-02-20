@@ -167,6 +167,14 @@ jobs:
           done
           echo 'gateway did not become healthy' && exit 1
 
+      - name: Dump docker compose status and recent logs (debug)
+        if: failure()
+        run: |
+          echo '--- docker compose ps ---'
+          docker compose ps || true
+          echo '--- docker compose logs (last 200 lines per service) ---'
+          docker compose logs --no-color --tail 200 || true
+
       - name: Run Playwright E2E against running stack
         working-directory: frontend
         env:
