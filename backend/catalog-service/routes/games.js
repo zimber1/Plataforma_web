@@ -116,9 +116,11 @@ JSON: {"canRun":bool,"performance":"bajo/medio/alto/ultra","bottleneck":"CPU/GPU
 router.get('/search', ensureToken, async (req, res, next) => {
     const { q } = req.query;
     const searchTerm = Array.isArray(q) ? q[0] : q;
+
     if (!searchTerm || searchTerm.length < 2) {
         return res.json({ success: true, data: [] });
     }
+
     try {
         const response = await axios({
             url: "https://api.igdb.com/v4/games",
@@ -127,16 +129,34 @@ router.get('/search', ensureToken, async (req, res, next) => {
                 'Client-ID': process.env.TWITCH_CLIENT_ID,
                 'Authorization': `Bearer ${accessToken}`,
             },
-            data: `search "${searchTerm}"; fields name, cover.url, platforms.name; where platforms = 6 & cover != null; limit 8;`
+            // Pedimos 50 para tener de dónde elegir los populares
+            // Traemos total_rating_count solo para ordenar aquí
+            data: `search "${searchTerm}"; 
+                   fields name, cover.url, platforms.name, total_rating_count; 
+                   where platforms = (6) & cover != null; 
+                   limit 50;`
         });
-        res.json({ success: true, data: response.data });
+
+        // --- EL TRUCO PARA QUE NO SALGAN MENSADAS ---
+        const sortedData = response.data
+            // 1. Ordenamos por cantidad de ratings (Popularidad)
+            .sort((a, b) => (b.total_rating_count || 0) - (a.total_rating_count || 0))
+            // 2. Agarramos los 8 más populares
+            .slice(0, 8)
+            // 3. Limpiamos el objeto para que el front lo reciba IGUAL que antes
+            .map(game => ({
+                id: game.id,
+                name: game.name,
+                cover: game.cover,
+                platforms: game.platforms
+            }));
+
+        // Mandamos la data exactamente con la misma estructura que tenías
+        res.json({ success: true, data: sortedData });
+
     } catch (err) {
         console.error('IGDB error:', err.response ? err.response.data : err);
-        if (err.response && err.response.status >= 400 && err.response.status < 500) {
-            res.status(err.response.status).json({ success: false, msg: 'Error en la consulta a IGDB (4xx)', error: err.response.data });
-        } else {
-            res.status(500).json({ success: false, msg: 'Error interno al buscar juegos' });
-        }
+        res.status(500).json({ success: false, msg: 'Error interno al buscar juegos' });
     }
 });
 
