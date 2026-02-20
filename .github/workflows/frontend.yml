@@ -63,7 +63,7 @@ jobs:
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: frontend-dist
+          name: frontend-dist-${{ github.job }}
           path: frontend/dist
 
       # Paso 6: Despliegue (Solo en main/master para no romper producción)

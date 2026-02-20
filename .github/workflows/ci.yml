@@ -35,7 +35,7 @@ jobs:
       - name: Upload frontend dist as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: frontend-dist
+          name: frontend-dist-${{ github.job }}
           path: frontend/dist
 
   simtests:
@@ -115,7 +115,7 @@ jobs:
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: frontend-dist
+          name: frontend-dist-${{ github.job }}
           path: frontend/dist
 
       - name: Upload Playwright report
