@@ -122,12 +122,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar servidor estático
+        run: npm install -g serve
+
       - name: Descargar artefacto del build
         uses: actions/download-artifact@v4
         with:
           name: frontend-dist-frontend
           path: dist/
         continue-on-error: true
+
+      - name: Levantar servidor con el build
+        run: serve -s dist -l 4173 &
+
+      - name: Esperar a que el servidor arranque
+        run: sleep 5
 
       - name: Ejecutar Lighthouse CI
         uses: treosh/lighthouse-ci-action@v11
