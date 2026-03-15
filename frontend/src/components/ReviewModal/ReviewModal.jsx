@@ -30,7 +30,7 @@ export default function ReviewModal({ isOpen, onClose, gameId, onPublished, defa
 
     const handlePublish = async () => {
         if (!isLoggedIn) {
-            setError('Debes iniciar sesion para publicar una resena')
+            setError('Debes iniciar sesion para publicar una reseña')
             return
         }
         if (rating === 0) {
@@ -58,7 +58,7 @@ export default function ReviewModal({ isOpen, onClose, gameId, onPublished, defa
             if (onPublished) onPublished()
             else onClose()
         } catch (err) {
-            setError(err.message || 'Error al publicar la resena')
+            setError(err.message || 'Error al publicar la reseña')
         } finally {
             setLoading(false)
         }
@@ -75,7 +75,7 @@ export default function ReviewModal({ isOpen, onClose, gameId, onPublished, defa
         <Modal
             isOpen={isOpen}
             onClose={handleClose}
-            title="Crear nueva resena"
+            title="Crear nueva reseña"
         >
             {error && (
                 <div role="alert" style={{ padding: '10px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '8px', color: '#ef4444', fontSize: '13px', textAlign: 'center' }}>
@@ -84,7 +84,7 @@ export default function ReviewModal({ isOpen, onClose, gameId, onPublished, defa
             )}
 
             <div className="modal-row" role="group" aria-labelledby="review-type-label">
-                <span id="review-type-label">Tipo de resena:</span>
+                <span id="review-type-label">Tipo de reseña:</span>
                 <div className="type-buttons">
                     <button
                         className={reviewType === 'artistic' ? 'type-btn active' : 'type-btn'}
@@ -143,11 +143,11 @@ export default function ReviewModal({ isOpen, onClose, gameId, onPublished, defa
             </div>
 
             <div className="modal-row">
-                <label htmlFor="review-text" className="sr-only">Escribe aqui tu resena</label>
+                <label htmlFor="review-text" className="sr-only">Escribe aqui tu reseña</label>
                 <textarea
                     id="review-text"
                     className="review-textarea"
-                    placeholder="Escribe aqui tu resena (opcional, max. 1000 caracteres)..."
+                    placeholder="Escribe aqui tu reseña (opcional, max. 1000 caracteres)..."
                     aria-required="false"
                     maxLength={1000}
                     value={comment}
@@ -169,7 +169,7 @@ export default function ReviewModal({ isOpen, onClose, gameId, onPublished, defa
                     style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
                 >
                     {loading && <Loader size={14} style={{ animation: 'spin 1s linear infinite' }} />}
-                    {loading ? 'Publicando...' : 'Publicar resena'}
+                    {loading ? 'Publicando...' : 'Publicar reseña'}
                 </button>
             </div>
         </Modal>

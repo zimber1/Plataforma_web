@@ -1,5 +1,5 @@
 /* ================================================================
-   INDEX.CSS - Estilos globales de la plataforma gamer
+   INDEX.CSS - Estilos globales de GameRate
    ================================================================ */
 
 :root {
@@ -271,6 +271,10 @@ body {
 }
 
 .game-card {
+  display: flex;              
+  flex-direction: column;     
+  height: 100%;               
+  
   background: var(--card-bg);
   border-radius: 12px;
   overflow: hidden;

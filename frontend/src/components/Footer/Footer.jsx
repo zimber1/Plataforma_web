@@ -8,7 +8,7 @@ export default function Footer() {
                 <div className="footer-section">
                     <div className="logo">
                         <img src="/juego-de-arcade.png" alt="Logo" style={{ height: '32px', width: 'auto' }} />
-                        <span style={{ marginLeft: '10px', fontSize: '28px' }}>Plataforma Gamer</span>
+                        <span style={{ marginLeft: '10px', fontSize: '28px' }}>GameRate</span>
                     </div>
                     <p>Tu destino para conocer la compatibilidad de juegos en PC y reseñas de la comunidad.</p>
                 </div>
@@ -32,7 +32,7 @@ export default function Footer() {
                 </div>
             </div>
             <div className="footer-bottom">
-                <p>&copy; 2026 Plataforma Gamer. Todos los derechos reservados.</p>
+                <p>&copy; 2026 GameRate. Todos los derechos reservados.</p>
             </div>
         </footer>
     )
