@@ -37,7 +37,8 @@ exports.getGameReviews = async (req, res, next) => {
                                 rating: 1, 
                                 comment: 1, 
                                 createdAt: 1,
-                                userId: 1 // Devuelvo el ID del usuario para que el front sepa si puede editar/borrar
+                                userId: 1, // Devuelvo el ID del usuario para que el front sepa si puede editar/borrar
+                                pcSpecs: 1
                             } 
                         }
                     ]
