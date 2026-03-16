@@ -192,18 +192,40 @@ export default function Home() {
     const latest     = useFetch(getLatestGames)
     const comingSoon = useFetch(getComingSoonGames)
 
+    // Sacamos 8 juegos aleatorios o los 8 primeros para el fondo tipo collage del hero
+    const heroGames = topRated.data.slice(0, 14)
+
     return (
         <div className="app-container">
             <Navbar />
 
             <main id="main-content" tabIndex="-1">
                 <div className="home-hero">
-                    <h1 className="hero-title">
-                        Descubre y califica los <span className="text-gradient">mejores juegos</span>
-                    </h1>
-                    <p className="hero-subtitle">
-                        Explora una base de datos interminable, comparte tus reseñas y encuentra tu próxima gran aventura.
-                    </p>
+                    {/* Fondo estilo Netflix/Apple */}
+                    <div className="home-hero-bg">
+                        {heroGames.length > 0 && (
+                            <div className="hero-grid-bg">
+                                {heroGames.map((game, i) => {
+                                    const cUrl = getCoverUrl(game)
+                                    return cUrl ? (
+                                        <div key={`hero-bg-${game.id}-${i}`} className="hero-bg-item">
+                                            <img src={cUrl} alt="" aria-hidden="true" />
+                                        </div>
+                                    ) : null
+                                })}
+                            </div>
+                        )}
+                        <div className="hero-gradient-overlay"></div>
+                    </div>
+
+                    <div className="home-hero-content">
+                        <h1 className="hero-title">
+                            Descubre y califica los <br/> <span className="text-gradient">mejores juegos</span>
+                        </h1>
+                        <p className="hero-subtitle">
+                            Explora una base de datos interminable, comparte tus reseñas y encuentra tu próxima gran aventura.
+                        </p>
+                    </div>
                 </div>
 
                 <Section
