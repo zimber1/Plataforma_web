@@ -102,6 +102,3 @@ Las tecnologías que se utilizarán durante la implementación del backend son:
 - Se seguirá GitHub Flow para el control de versiones.
 - Los cambios al backend se integrarán mediante Pull Requests.
 - La implementación se realizará por fases para facilitar la validación.
-
-
-

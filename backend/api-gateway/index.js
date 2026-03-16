@@ -165,6 +165,29 @@ app.use('/api/reviews', async (req, res) => {
     }
 });
 
+
+// OBTENER SPECS DE USUARIO PARA REVIEWER/ADMIN
+app.get('/api/reviewers/users/:userId/specs', async (req, res) => {
+    try {
+        const authHeader = req.headers['authorization'];
+        const { userId } = req.params;
+
+        const response = await axios.get(`http://localhost:3001/api/auth/reviewer/users/${userId}/specs`, {
+            headers: {
+                'Authorization': authHeader
+            }
+        });
+
+        res.status(response.status).json(response.data);
+    } catch (error) {
+        if (error.response) {
+            res.status(error.response.status).json(error.response.data);
+        } else {
+            res.status(500).json({ msg: 'Error de conexión con Users Service' });
+        }
+    }
+});
+
 // ACTUALIZAR SPECS
 app.put('/api/auth/specs', async (req, res) => {
     try {

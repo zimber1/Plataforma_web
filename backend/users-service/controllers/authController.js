@@ -252,3 +252,39 @@ exports.updateSpecs = async (req, res, next) => {
         next(error);
     }
 };
+
+// Obtener specs de un usuario para revisión (solo reviewer/admin)
+exports.getUserSpecsForReviewer = async (req, res, next) => {
+    try {
+        const { userId } = req.params;
+
+        if (!userId) {
+            return res.status(400).json({
+                success: false,
+                msg: 'El parámetro userId es obligatorio'
+            });
+        }
+
+        const user = await User.findById(userId).select('username email pcSpecs role');
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                msg: 'Usuario no encontrado'
+            });
+        }
+
+        return res.json({
+            success: true,
+            data: {
+                userId: user._id,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+                pcSpecs: user.pcSpecs
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+};

@@ -4,6 +4,19 @@ const { check, validationResult } = require('express-validator');
 const authController = require('../controllers/authController');
 const authMiddleware = require('../middleware/authMiddleware');
 
+// Middleware para permitir solo reviewer/admin
+const reviewerOrAdminOnly = (req, res, next) => {
+    const allowedRoles = ['reviewer', 'admin'];
+    if (!allowedRoles.includes(req.user.role)) {
+        return res.status(403).json({
+            success: false,
+            msg: 'No tienes permisos para consultar specs de otros usuarios'
+        });
+    }
+    next();
+};
+
+
 // Middleware para revisar errores de validación
 const validate = (req, res, next) => {
     const errors = validationResult(req);
@@ -48,5 +61,10 @@ router.get('/me', authMiddleware, async (req, res, next) => {
 // @route   PUT /api/auth/specs
 // @desc    Actualizar specs de PC del usuario
 router.put('/specs', authMiddleware, authController.updateSpecs);
+
+
+// @route   GET /api/auth/reviewer/users/:userId/specs
+// @desc    Obtener specs de un usuario para revisión (reviewer/admin)
+router.get('/reviewer/users/:userId/specs', authMiddleware, reviewerOrAdminOnly, authController.getUserSpecsForReviewer);
 
 module.exports = router;
