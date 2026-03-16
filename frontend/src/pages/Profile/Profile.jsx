@@ -334,9 +334,9 @@ export default function Profile() {
                 </div>
 
                 {/* ── Info del usuario ── */}
-                <section className="profile-card" aria-labelledby="info-title">
+                <section className="profile-card profile-user-card" aria-labelledby="info-title">
                     <div className="profile-avatar" aria-hidden="true">
-                        <User size={72} strokeWidth={1} color="var(--primary-purple)" />
+                        <User size={56} strokeWidth={1.5} color="var(--primary-purple)" />
                     </div>
                     <div className="profile-info">
                         <h2 id="info-title">{user.username}</h2>

@@ -42,29 +42,27 @@ function GameCard({ game }) {
     return (
         <Link
             to={`/game/${game.id}`}
-            className="game-card"
+            className="game-card group"
             style={{ textDecoration: 'none', color: 'inherit' }}
             aria-label={`Ver detalles de ${game.name}${dateDisplay ? `, ${dateDisplay}` : ''}`}
         >
-            {coverUrl ? (
-                <img src={coverUrl} alt="" className="game-image" aria-hidden="true" loading="lazy" />
-            ) : (
-                <div
-                    className="game-image"
-                    aria-hidden="true"
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#2a2a2a' }}
-                >
-                    <span style={{ fontSize: '12px', color: '#666' }}>Sin imagen</span>
-                </div>
-            )}
-            <div className="game-info">
-                <h3 className="game-name">{game.name}</h3>
-                {ratingVal && ratingVal !== 'N/A' && (
-                    <p className="game-genre" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <Star size={12} aria-hidden="true" />
-                        <span>{ratingVal}/100</span>
-                    </p>
+            <div className="game-image-wrapper">
+                {coverUrl ? (
+                    <img src={coverUrl} alt="" className="game-image" aria-hidden="true" loading="lazy" />
+                ) : (
+                    <div className="game-image-placeholder" aria-hidden="true">
+                        <span className="placeholder-text">Sin imagen</span>
+                    </div>
                 )}
+                {ratingVal && ratingVal !== 'N/A' && (
+                    <div className="game-rating-badge">
+                        <Star size={14} fill="currentColor" strokeWidth={0} />
+                        <span>{ratingVal}</span>
+                    </div>
+                )}
+            </div>
+            <div className="game-info">
+                <h3 className="game-name" title={game.name}>{game.name}</h3>
                 {dateDisplay && <p className="game-author">{dateDisplay}</p>}
             </div>
         </Link>
@@ -199,6 +197,15 @@ export default function Home() {
             <Navbar />
 
             <main id="main-content" tabIndex="-1">
+                <div className="home-hero">
+                    <h1 className="hero-title">
+                        Descubre y califica los <span className="text-gradient">mejores juegos</span>
+                    </h1>
+                    <p className="hero-subtitle">
+                        Explora una base de datos interminable, comparte tus reseñas y encuentra tu próxima gran aventura.
+                    </p>
+                </div>
+
                 <Section
                     id="top-rated"
                     title="Mejor valorados"

@@ -262,7 +262,7 @@ export default function GameDetails() {
 
     if (loading) {
         return (
-            <div className="game-page">
+            <div className="app-container">
                 <Navbar />
                 <div role="status" aria-label="Cargando juego" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
                     <Loader size={48} className="icon-purple" style={{ animation: 'spin 1s linear infinite' }} aria-hidden="true" />
@@ -273,7 +273,7 @@ export default function GameDetails() {
 
     if (error || !game) {
         return (
-            <div className="game-page">
+            <div className="app-container">
                 <Navbar />
                 <div role="alert" style={{ textAlign: 'center', padding: '60px 20px' }}>
                     <AlertCircle size={64} color="#ef4444" style={{ marginBottom: '16px' }} aria-hidden="true" />
@@ -308,8 +308,15 @@ export default function GameDetails() {
     // ── render ─────────────────────────────────────────────────────────────────
 
     return (
-        <div className="game-page">
+        <div className="app-container">
             <Navbar />
+            
+            {/* Banner decorativo desenfocado detrás de todo el contenido */}
+            <div 
+                className="game-header-backdrop" 
+                style={{ backgroundImage: `url(${screenshotUrls.length > 0 ? screenshotUrls[0] : coverUrl})` }} 
+                aria-hidden="true" 
+            />
 
             <div className="game-content-container" id="main-content" tabIndex="-1">
 

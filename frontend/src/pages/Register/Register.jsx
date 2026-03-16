@@ -512,14 +512,16 @@ export default function Register() {
                                 placeholder="Ej: RTX 3060..."
                                 disabled={loading}
                             />
-                            <HardwareAutocomplete
-                                type="ram"
-                                value={ram}
-                                onChange={setRam}
-                                label="Memoria RAM"
-                                placeholder="Ej: 16GB DDR4..."
-                                disabled={loading}
-                            />
+                            <div className="full-width-spec">
+                                <HardwareAutocomplete
+                                    type="ram"
+                                    value={ram}
+                                    onChange={setRam}
+                                    label="Memoria RAM"
+                                    placeholder="Ej: 16GB DDR4..."
+                                    disabled={loading}
+                                />
+                            </div>
                         </div>
                     </div>
 

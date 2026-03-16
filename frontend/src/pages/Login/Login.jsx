@@ -230,13 +230,7 @@ export default function Login() {
           <div className="form-group">
             <label htmlFor="password">Contraseña</label>
 
-            <div
-              style={{
-                position: "relative",
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
+            <div className="password-input-wrapper">
               <input
                 id="password"
                 ref={passwordRef}
@@ -267,10 +261,10 @@ export default function Login() {
                     .join(" ") || undefined
                 }
                 disabled={loading}
-                style={{ paddingRight: "44px", width: "100%" }}
               />
               <button
                 type="button"
+                className="password-toggle"
                 onClick={toggleShowPassword}
                 aria-label={
                   showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
@@ -279,19 +273,13 @@ export default function Login() {
                 tabIndex={0}
                 disabled={loading}
                 style={{
-                  position: "absolute",
-                  right: "12px",
-                  background: "none",
-                  border: "none",
                   cursor: loading ? "not-allowed" : "pointer",
-                  padding: "4px",
                   display: "flex",
                   alignItems: "center",
                   color: "var(--primary-purple)",
                   opacity: loading ? 0.4 : 0.7,
-                  borderRadius: "4px",
+                  border: "none",
                   outline: "none",
-                  transition: "opacity 0.15s",
                 }}
                 onMouseEnter={(e) => {
                   if (!loading) e.currentTarget.style.opacity = "1";
