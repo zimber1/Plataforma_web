@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Star, Loader } from 'lucide-react'
+import { Star, Loader, Palette, Cpu, AlertCircle, Send } from 'lucide-react'
 import Modal from '../Common/Modal'
 import { upsertReview } from '../../api/reviewsService'
 import { useAuth } from '../../context/AuthContext'
@@ -17,6 +17,7 @@ export default function ReviewModal({ isOpen, onClose, gameId, onPublished, defa
     const { isLoggedIn } = useAuth()
     const [reviewType, setReviewType] = useState(defaultType)
     const [rating, setRating] = useState(0)
+    const [hoverRating, setHoverRating] = useState(0)
     const [comment, setComment] = useState('')
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState(null)
@@ -25,16 +26,20 @@ export default function ReviewModal({ isOpen, onClose, gameId, onPublished, defa
     useEffect(() => {
         if (isOpen) {
             setReviewType(defaultType)
+            setRating(0)
+            setHoverRating(0)
+            setComment('')
+            setError(null)
         }
     }, [isOpen, defaultType])
 
     const handlePublish = async () => {
         if (!isLoggedIn) {
-            setError('Debes iniciar sesion para publicar una reseña')
+            setError('Debes iniciar sesión para publicar una reseña')
             return
         }
         if (rating === 0) {
-            setError('Selecciona una puntuacion')
+            setError('Selecciona una puntuación para continuar')
             return
         }
 
@@ -49,11 +54,6 @@ export default function ReviewModal({ isOpen, onClose, gameId, onPublished, defa
                 comment: comment.trim(),
             })
 
-            // Resetear formulario
-            setRating(0)
-            setComment('')
-            setReviewType(defaultType)
-
             // Notificar al padre
             if (onPublished) onPublished()
             else onClose()
@@ -65,11 +65,13 @@ export default function ReviewModal({ isOpen, onClose, gameId, onPublished, defa
     }
 
     const handleClose = () => {
-        setError(null)
-        setRating(0)
-        setComment('')
         onClose()
     }
+
+    const charCount = comment.length
+    const maxChars = 1000
+    const charPercentage = (charCount / maxChars) * 100
+    const isNearLimit = maxChars - charCount <= 50
 
     return (
         <Modal
@@ -77,100 +79,157 @@ export default function ReviewModal({ isOpen, onClose, gameId, onPublished, defa
             onClose={handleClose}
             title="Crear nueva reseña"
         >
-            {error && (
-                <div role="alert" style={{ padding: '10px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '8px', color: '#ef4444', fontSize: '13px', textAlign: 'center' }}>
-                    {error}
-                </div>
-            )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                {error && (
+                    <div role="alert" style={{ 
+                        padding: '12px 16px', 
+                        background: 'rgba(239, 68, 68, 0.1)', 
+                        border: '1px solid rgba(239, 68, 68, 0.3)', 
+                        borderRadius: '12px', 
+                        color: '#ef4444', 
+                        fontSize: '14px', 
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px'
+                    }}>
+                        <AlertCircle size={18} strokeWidth={2.5} />
+                        <span style={{ fontWeight: '500' }}>{error}</span>
+                    </div>
+                )}
 
-            <div className="modal-row" role="group" aria-labelledby="review-type-label">
-                <span id="review-type-label">Tipo de reseña:</span>
-                <div className="type-buttons">
-                    <button
-                        className={reviewType === 'artistic' ? 'type-btn active' : 'type-btn'}
-                        onClick={() => setReviewType('artistic')}
-                        aria-pressed={reviewType === 'artistic'}
-                        disabled={loading}
-                    >
-                        Artistica
-                    </button>
-                    <button
-                        className={reviewType === 'technical' ? 'type-btn active' : 'type-btn'}
-                        onClick={() => setReviewType('technical')}
-                        aria-pressed={reviewType === 'technical'}
-                        disabled={loading}
-                    >
-                        Tecnica
-                    </button>
-                </div>
-            </div>
-
-            <div className="modal-row" role="group" aria-labelledby="rating-label">
-                <span id="rating-label">Puntuacion:</span>
-                <div
-                    className="star-rating"
-                    role="radiogroup"
-                    aria-label="Puntuacion en estrellas"
-                >
-                    {[1, 2, 3, 4, 5].map((s) => (
+                <div className="modal-row" role="group" aria-labelledby="review-type-label">
+                    <span id="review-type-label" style={{ fontSize: '15px', fontWeight: '500', color: 'var(--text-primary)', marginBottom: '4px', display: 'block' }}>¿Qué aspecto del juego deseas evaluar?</span>
+                    <div className="type-buttons">
                         <button
-                            key={s}
-                            type="button"
-                            className="star-btn"
-                            onClick={() => setRating(s)}
-                            aria-label={`${s} estrellas`}
-                            aria-checked={s === rating}
-                            role="radio"
+                            className={`type-btn ${reviewType === 'artistic' ? 'active' : ''}`}
+                            onClick={() => setReviewType('artistic')}
+                            aria-pressed={reviewType === 'artistic'}
                             disabled={loading}
-                            style={{
-                                background: 'none',
-                                border: 'none',
-                                padding: 0,
-                                cursor: loading ? 'not-allowed' : 'pointer',
-                                display: 'flex',
-                                alignItems: 'center'
-                            }}
                         >
-                            <Star
-                                size={24}
-                                fill={s <= rating ? "var(--primary-purple)" : "transparent"}
-                                stroke="var(--primary-purple)"
-                                aria-hidden="true"
-                            />
+                            <Palette size={18} />
+                            Artística
                         </button>
-                    ))}
+                        <button
+                            className={`type-btn ${reviewType === 'technical' ? 'active' : ''}`}
+                            onClick={() => setReviewType('technical')}
+                            aria-pressed={reviewType === 'technical'}
+                            disabled={loading}
+                        >
+                            <Cpu size={18} />
+                            Técnica
+                        </button>
+                    </div>
                 </div>
-            </div>
 
-            <div className="modal-row">
-                <label htmlFor="review-text" className="sr-only">Escribe aqui tu reseña</label>
-                <textarea
-                    id="review-text"
-                    className="review-textarea"
-                    placeholder="Escribe aqui tu reseña (opcional, max. 1000 caracteres)..."
-                    aria-required="false"
-                    maxLength={1000}
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                    disabled={loading}
-                ></textarea>
-            </div>
+                <div className="modal-row" role="group" aria-labelledby="rating-label">
+                    <span id="rating-label" style={{ fontSize: '15px', fontWeight: '500', color: 'var(--text-primary)', marginBottom: '4px', display: 'block' }}>Tu puntuación</span>
+                    <div
+                        className="star-rating"
+                        role="radiogroup"
+                        aria-label="Puntuacion en estrellas"
+                        onMouseLeave={() => setHoverRating(0)}
+                    >
+                        {[1, 2, 3, 4, 5].map((s) => (
+                            <button
+                                key={s}
+                                type="button"
+                                className="star-btn"
+                                onClick={() => setRating(s)}
+                                onMouseEnter={() => setHoverRating(s)}
+                                aria-label={`${s} estrellas`}
+                                aria-checked={s === rating}
+                                role="radio"
+                                disabled={loading}
+                                style={{
+                                    transform: hoverRating === s ? 'scale(1.15)' : 'scale(1)'
+                                }}
+                            >
+                                <Star
+                                    size={30}
+                                    fill={s <= (hoverRating || rating) ? "var(--primary-purple)" : "transparent"}
+                                    stroke={s <= (hoverRating || rating) ? "var(--primary-purple)" : "var(--text-secondary)"}
+                                    strokeWidth={s <= (hoverRating || rating) ? 0 : 1.5}
+                                    aria-hidden="true"
+                                    style={{ transition: 'all 0.2s' }}
+                                />
+                            </button>
+                        ))}
+                    </div>
+                </div>
 
-            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', textAlign: 'right' }}>
-                {comment.length}/1000
-            </div>
+                <div className="modal-row">
+                    <label htmlFor="review-text" style={{ fontSize: '15px', fontWeight: '500', color: 'var(--text-primary)', marginBottom: '4px', display: 'block' }}>
+                        Cuéntanos más sobre tu experiencia (Opcional)
+                    </label>
+                    <textarea
+                        id="review-text"
+                        className="review-textarea"
+                        placeholder="Las reseñas detalladas ayudan mucho a otros jugadores. ¿Qué te gustó más? ¿Qué podría mejorar?"
+                        aria-required="false"
+                        maxLength={maxChars}
+                        value={comment}
+                        onChange={(e) => setComment(e.target.value)}
+                        disabled={loading}
+                    ></textarea>
+                    
+                    <div style={{ 
+                        marginTop: '8px', 
+                        display: 'flex', 
+                        justifyContent: 'flex-end', 
+                        alignItems: 'center',
+                        gap: '12px'
+                    }}>
+                        <div style={{ 
+                            width: '100px', 
+                            height: '4px', 
+                            background: 'rgba(255,255,255,0.1)', 
+                            borderRadius: '2px',
+                            overflow: 'hidden'
+                        }}>
+                            <div style={{
+                                width: `${charPercentage}%`,
+                                height: '100%',
+                                background: isNearLimit ? '#ef4444' : 'var(--primary-purple)',
+                                transition: 'width 0.3s'
+                            }}></div>
+                        </div>
+                        <span style={{ 
+                            fontSize: '12px', 
+                            fontWeight: '600',
+                            color: isNearLimit ? '#ef4444' : 'var(--text-secondary)',
+                            fontVariantNumeric: 'tabular-nums'
+                        }}>
+                            {charCount} / {maxChars}
+                        </span>
+                    </div>
+                </div>
 
-            <div className="modal-actions">
-                <button className="cancel-btn" onClick={handleClose} disabled={loading}>Cancelar</button>
-                <button
-                    className="publish-btn"
-                    onClick={handlePublish}
-                    disabled={rating === 0 || loading}
-                    style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-                >
-                    {loading && <Loader size={14} style={{ animation: 'spin 1s linear infinite' }} />}
-                    {loading ? 'Publicando...' : 'Publicar reseña'}
-                </button>
+                <div className="modal-actions">
+                    <button 
+                        className="cancel-btn" 
+                        onClick={handleClose} 
+                        disabled={loading}
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        className="publish-btn"
+                        onClick={handlePublish}
+                        disabled={rating === 0 || loading}
+                    >
+                        {loading ? (
+                            <>
+                                <Loader size={16} style={{ animation: 'spin 1s linear infinite' }} />
+                                Publicando...
+                            </>
+                        ) : (
+                            <>
+                                <Send size={16} />
+                                Publicar reseña
+                            </>
+                        )}
+                    </button>
+                </div>
             </div>
         </Modal>
     )
