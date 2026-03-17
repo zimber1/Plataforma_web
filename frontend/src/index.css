@@ -1395,10 +1395,40 @@ body {
   gap: 24px;
 }
 
+.modal-inner-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.modal-error-alert {
+  padding: 12px 16px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 12px;
+  color: #ef4444;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-error-alert span {
+  font-weight: 500;
+}
+
+.modal-field-label {
+  font-size: 15px;
+  font-weight: 500;
+  color: #fff;
+  margin-bottom: 8px;
+  display: block;
+}
+
 .modal-row {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
   font-size: 14px;
 }
 
@@ -1468,7 +1498,7 @@ body {
 
 .review-textarea {
   width: 100%;
-  min-height: 130px;
+  min-height: 120px;
   background: rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
@@ -1490,6 +1520,39 @@ body {
 
 .review-textarea::placeholder {
   color: rgba(255, 255, 255, 0.3);
+}
+
+.char-counter-container {
+  margin-top: 8px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+}
+
+.char-progress-bar {
+  width: 100px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.char-progress-fill {
+  height: 100%;
+  transition: width 0.3s, background-color 0.3s;
+}
+
+.char-count-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  transition: color 0.3s;
+}
+
+.char-count-text.near-limit {
+  color: #ef4444;
 }
 
 .modal-actions {
@@ -2245,8 +2308,23 @@ body {
     padding: 15px 20px;
   }
 
+  .header {
+    margin: 0 -20px;
+    padding: 15px 20px;
+  }
+
+  .home-hero {
+    margin: -30px -20px 40px;
+    padding: 100px 20px 80px;
+    min-height: 40vh;
+  }
+
+  .hero-title {
+    font-size: 3.5rem;
+  }
+
   .game-content-container {
-    padding: 0 20px;
+    padding: 0;
     gap: 25px;
   }
 
@@ -2282,9 +2360,23 @@ body {
 
   /* Header - apilar en movil */
   .header {
+    margin: 0 -16px;
+    padding: 12px 16px;
     flex-wrap: wrap;
     gap: 12px;
-    padding: 10px 0 20px 0;
+  }
+
+  .home-hero {
+    margin: -20px -16px 30px;
+    padding: 80px 16px 60px;
+  }
+
+  .hero-title {
+    font-size: 2.8rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1.1rem;
   }
 
   .search-bar-container {
@@ -2330,12 +2422,44 @@ body {
   .game-info {
     padding: 10px;
   }
+  
+  .game-poster-large {
+    width: 140px;
+    height: 190px;
+    margin-top: -60px;
+    border-width: 2px;
+  }
+  
+  .score-block {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    text-align: center;
+  }
+  
+  .score-value {
+    font-size: 18px;
+  }
+  
+  .score-label {
+    font-size: 10px;
+  }
+
+  .main-center {
+    padding: 16px 0;
+  }
 
   /* GameDetails - columna en movil */
   .game-content-container {
     flex-direction: column;
-    padding: 0 16px;
+    padding: 0;
     gap: 20px;
+  }
+
+  .game-header-backdrop {
+    margin: 0 -16px;
+    height: 250px;
   }
 
   .sidebar-left {
@@ -2395,6 +2519,32 @@ body {
   .modal-card {
     margin: 16px;
     max-width: calc(100% - 32px);
+    border-radius: 16px;
+  }
+
+  .modal-header {
+    padding: 20px 24px;
+  }
+
+  .modal-body {
+    padding: 24px;
+    gap: 20px;
+  }
+
+  .type-buttons {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .modal-actions {
+    flex-direction: column-reverse; /* Cancelar abajo, publicar arriba en móvil */
+    gap: 10px;
+    padding-top: 20px;
+  }
+
+  .modal-actions button {
+    width: 100%;
+    justify-content: center;
   }
 
   .modal-row {
@@ -2472,6 +2622,19 @@ body {
    Responsividad - Movil pequeno (max 480px)
    ================================================================ */
 @media (max-width: 480px) {
+  .hero-title {
+    font-size: 2.2rem;
+  }
+  
+  .hero-subtitle {
+    font-size: 1rem;
+  }
+
+  .home-hero {
+    min-height: 30vh;
+    padding: 60px 16px 40px;
+  }
+
   .games-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
@@ -2507,5 +2670,38 @@ body {
   .btn-logout-small {
     font-size: 11px;
     padding: 4px 8px;
+  }
+
+  /* Modal pequenos ajustes */
+  .modal-card {
+    margin: 12px;
+    max-width: calc(100% - 24px);
+    border-radius: 12px;
+  }
+
+  .modal-header {
+    padding: 16px 20px;
+  }
+
+  .modal-header h2 {
+    font-size: 18px;
+  }
+
+  .modal-body {
+    padding: 20px;
+    gap: 16px;
+  }
+
+  .type-btn {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+
+  .star-rating {
+    padding: 10px 12px;
+  }
+
+  .star-btn {
+    padding: 2px;
   }
 }

@@ -79,26 +79,16 @@ export default function ReviewModal({ isOpen, onClose, gameId, onPublished, defa
             onClose={handleClose}
             title="Crear nueva reseña"
         >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div className="modal-inner-content">
                 {error && (
-                    <div role="alert" style={{ 
-                        padding: '12px 16px', 
-                        background: 'rgba(239, 68, 68, 0.1)', 
-                        border: '1px solid rgba(239, 68, 68, 0.3)', 
-                        borderRadius: '12px', 
-                        color: '#ef4444', 
-                        fontSize: '14px', 
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px'
-                    }}>
+                    <div className="modal-error-alert" role="alert">
                         <AlertCircle size={18} strokeWidth={2.5} />
-                        <span style={{ fontWeight: '500' }}>{error}</span>
+                        <span>{error}</span>
                     </div>
                 )}
 
                 <div className="modal-row" role="group" aria-labelledby="review-type-label">
-                    <span id="review-type-label" style={{ fontSize: '15px', fontWeight: '500', color: 'var(--text-primary)', marginBottom: '4px', display: 'block' }}>¿Qué aspecto del juego deseas evaluar?</span>
+                    <span id="review-type-label" className="modal-field-label">¿Qué aspecto del juego deseas evaluar?</span>
                     <div className="type-buttons">
                         <button
                             className={`type-btn ${reviewType === 'artistic' ? 'active' : ''}`}
@@ -122,7 +112,7 @@ export default function ReviewModal({ isOpen, onClose, gameId, onPublished, defa
                 </div>
 
                 <div className="modal-row" role="group" aria-labelledby="rating-label">
-                    <span id="rating-label" style={{ fontSize: '15px', fontWeight: '500', color: 'var(--text-primary)', marginBottom: '4px', display: 'block' }}>Tu puntuación</span>
+                    <span id="rating-label" className="modal-field-label">Tu puntuación</span>
                     <div
                         className="star-rating"
                         role="radiogroup"
@@ -158,7 +148,7 @@ export default function ReviewModal({ isOpen, onClose, gameId, onPublished, defa
                 </div>
 
                 <div className="modal-row">
-                    <label htmlFor="review-text" style={{ fontSize: '15px', fontWeight: '500', color: 'var(--text-primary)', marginBottom: '4px', display: 'block' }}>
+                    <label htmlFor="review-text" className="modal-field-label">
                         Cuéntanos más sobre tu experiencia (Opcional)
                     </label>
                     <textarea
@@ -172,33 +162,14 @@ export default function ReviewModal({ isOpen, onClose, gameId, onPublished, defa
                         disabled={loading}
                     ></textarea>
                     
-                    <div style={{ 
-                        marginTop: '8px', 
-                        display: 'flex', 
-                        justifyContent: 'flex-end', 
-                        alignItems: 'center',
-                        gap: '12px'
-                    }}>
-                        <div style={{ 
-                            width: '100px', 
-                            height: '4px', 
-                            background: 'rgba(255,255,255,0.1)', 
-                            borderRadius: '2px',
-                            overflow: 'hidden'
-                        }}>
-                            <div style={{
+                    <div className="char-counter-container">
+                        <div className="char-progress-bar">
+                            <div className="char-progress-fill" style={{
                                 width: `${charPercentage}%`,
-                                height: '100%',
-                                background: isNearLimit ? '#ef4444' : 'var(--primary-purple)',
-                                transition: 'width 0.3s'
+                                background: isNearLimit ? '#ef4444' : 'var(--primary-purple)'
                             }}></div>
                         </div>
-                        <span style={{ 
-                            fontSize: '12px', 
-                            fontWeight: '600',
-                            color: isNearLimit ? '#ef4444' : 'var(--text-secondary)',
-                            fontVariantNumeric: 'tabular-nums'
-                        }}>
+                        <span className={`char-count-text ${isNearLimit ? 'near-limit' : ''}`}>
                             {charCount} / {maxChars}
                         </span>
                     </div>
