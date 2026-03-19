@@ -106,6 +106,12 @@ export async function apiClient(path, options = {}) {
       const err = new Error(errorMsg);
       err.status = res.status;
       err.payload = data;
+      
+      // Si el token es inválido o expiró
+      if (res.status === 401) {
+        window.dispatchEvent(new Event('session_expired'));
+      }
+      
       throw err;
     }
 
