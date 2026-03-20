@@ -203,10 +203,61 @@ app.put('/api/auth/specs', async (req, res) => {
     try {
         const authHeader = req.headers['authorization'];
         
-        const response = await axios.put('http://localhost:3001/api/auth/specs', req.body, {
+        const response = await axios.put(`${USERS_SERVICE_URL}/api/auth/specs`, req.body, {
             headers: {
                 'Authorization': authHeader 
             }
+        });
+        res.status(response.status).json(response.data);
+    } catch (error) {
+        if (error.response) {
+            res.status(error.response.status).json(error.response.data);
+        } else {
+            res.status(500).json({ msg: 'Error de conexión con Users Service' });
+        }
+    }
+});
+
+// LOGOUT ACTUAL
+app.post('/api/auth/logout', async (req, res) => {
+    try {
+        const authHeader = req.headers['authorization'];
+        const response = await axios.post(`${USERS_SERVICE_URL}/api/auth/logout`, {}, {
+            headers: { 'Authorization': authHeader }
+        });
+        res.status(response.status).json(response.data);
+    } catch (error) {
+        if (error.response) {
+            res.status(error.response.status).json(error.response.data);
+        } else {
+            res.status(500).json({ msg: 'Error de conexión con Users Service' });
+        }
+    }
+});
+
+// LOGOUT TODOS
+app.post('/api/auth/logout-all', async (req, res) => {
+    try {
+        const authHeader = req.headers['authorization'];
+        const response = await axios.post(`${USERS_SERVICE_URL}/api/auth/logout-all`, {}, {
+            headers: { 'Authorization': authHeader }
+        });
+        res.status(response.status).json(response.data);
+    } catch (error) {
+        if (error.response) {
+            res.status(error.response.status).json(error.response.data);
+        } else {
+            res.status(500).json({ msg: 'Error de conexión con Users Service' });
+        }
+    }
+});
+
+// CAMBIAR CONTRASEÑA
+app.put('/api/auth/change-password', async (req, res) => {
+    try {
+        const authHeader = req.headers['authorization'];
+        const response = await axios.put(`${USERS_SERVICE_URL}/api/auth/change-password`, req.body, {
+            headers: { 'Authorization': authHeader }
         });
         res.status(response.status).json(response.data);
     } catch (error) {
