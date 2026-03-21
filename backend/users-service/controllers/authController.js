@@ -4,6 +4,7 @@ const Gpu = require('../models/Gpu');
 const Ram = require('../models/Ram');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const Session = require('../models/Session');
 
 // Generar Token JWT
 const generateToken = (user) => {
@@ -37,9 +38,7 @@ exports.register = async (req, res, next) => {
         }
 
         // 2. VALIDACIÓN DE HARDWARE (Si envía pcSpecs)
-        // El front debe mandar el nombre exacto que seleccionó del autocompletado
         if (pcSpecs) {
-            // Validar CPU
             if (pcSpecs.cpu) {
                 const validCpu = await Cpu.findOne({ name: pcSpecs.cpu });
                 if (!validCpu) {
@@ -48,7 +47,6 @@ exports.register = async (req, res, next) => {
                     throw err;
                 }
             }
-            // Validar GPU
             if (pcSpecs.gpu) {
                 const validGpu = await Gpu.findOne({ name: pcSpecs.gpu });
                 if (!validGpu) {
@@ -57,7 +55,6 @@ exports.register = async (req, res, next) => {
                     throw err;
                 }
             }
-            // Validar RAM
             if (pcSpecs.ram) {
                 const validRam = await Ram.findOne({ name: pcSpecs.ram });
                 if (!validRam) {
@@ -66,7 +63,6 @@ exports.register = async (req, res, next) => {
                     throw err;
                 }
             }
-            // Nota: El SO (pcSpecs.os) no lo validamos contra DB, confiamos en el dropdown del front
         }
 
         // 3. Crear usuario
@@ -81,9 +77,20 @@ exports.register = async (req, res, next) => {
             pcSpecs: pcSpecs || {}
         });
 
+        const token = generateToken(user);
+
+        // EXTRA: Guardar sesión en BD para permitir múltiples dispositivos
+        await Session.create({
+            userId: user._id,
+            token: token,
+            deviceInfo: req.headers['user-agent'] || 'Dispositivo Desconocido',
+            ipAddress: req.ip || req.connection.remoteAddress,
+            expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 días
+        });
+
         res.status(201).json({
             success: true,
-            token: generateToken(user),
+            token,
             user: {
                 id: user._id,
                 username: user.username,
@@ -99,7 +106,6 @@ exports.register = async (req, res, next) => {
 };
 
 exports.login = async (req, res, next) => {
-    // ... (Tu login se queda igual, no necesita cambios)
     try {
         const { email, password } = req.body;
         const user = await User.findOne({ email });
@@ -110,9 +116,20 @@ exports.login = async (req, res, next) => {
             throw err;
         }
 
+        const token = generateToken(user);
+
+        // EXTRA: Guardar sesión en BD para múltiples dispositivos
+        await Session.create({
+            userId: user._id,
+            token: token,
+            deviceInfo: req.headers['user-agent'] || 'Dispositivo Desconocido',
+            ipAddress: req.ip || req.connection.remoteAddress,
+            expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 días
+        });
+
         res.json({
             success: true,
-            token: generateToken(user),
+            token,
             user: {
                 id: user._id,
                 username: user.username,
@@ -127,20 +144,17 @@ exports.login = async (req, res, next) => {
 };
 
 // Actualizar specs de PC del usuario
-// Actualizar specs de PC del usuario (PROTEGIDO Y MEJORADO)
 exports.updateSpecs = async (req, res, next) => {
     try {
         const { pcSpecs } = req.body;
-        const userId = req.user.id; // Viene del middleware authMiddleware
+        const userId = req.user.id;
 
-        // Validación: pcSpecs es requerido
         if (!pcSpecs || typeof pcSpecs !== 'object') {
             const err = new Error('Se requiere un objeto pcSpecs válido');
             err.status = 400;
             throw err;
         }
 
-        // Verificar que el usuario existe (seguridad extra)
         const userExists = await User.findById(userId);
         if (!userExists) {
             const err = new Error('Usuario no encontrado');
@@ -148,26 +162,19 @@ exports.updateSpecs = async (req, res, next) => {
             throw err;
         }
 
-        // VALIDACIÓN DE HARDWARE con autocompletado (solo acepta valores válidos de la BD)
         const validationErrors = [];
-
-        // Validar CPU (si se envía)
         if (pcSpecs.cpu) {
             const validCpu = await Cpu.findOne({ name: pcSpecs.cpu });
             if (!validCpu) {
                 validationErrors.push(`CPU '${pcSpecs.cpu}' no es válido. Selecciona uno de la lista de autocompletado.`);
             }
         }
-
-        // Validar GPU (si se envía)
         if (pcSpecs.gpu) {
             const validGpu = await Gpu.findOne({ name: pcSpecs.gpu });
             if (!validGpu) {
                 validationErrors.push(`GPU '${pcSpecs.gpu}' no es válida. Selecciona una de la lista de autocompletado.`);
             }
         }
-
-        // Validar RAM (si se envía)
         if (pcSpecs.ram) {
             const validRam = await Ram.findOne({ name: pcSpecs.ram });
             if (!validRam) {
@@ -175,7 +182,6 @@ exports.updateSpecs = async (req, res, next) => {
             }
         }
 
-        // Si hay errores de validación, lanzar error
         if (validationErrors.length > 0) {
             const err = new Error('Errores de validación en las specs');
             err.status = 400;
@@ -183,16 +189,14 @@ exports.updateSpecs = async (req, res, next) => {
             throw err;
         }
 
-        // Al menos un campo debe estar presente
         if (!pcSpecs.cpu && !pcSpecs.gpu && !pcSpecs.ram && !pcSpecs.os) {
             const err = new Error('Debes proporcionar al menos una spec (CPU, GPU, RAM u OS)');
             err.status = 400;
             throw err;
         }
 
-        // Actualizar specs del usuario (SOLO SU PROPIA CUENTA)
         const updatedUser = await User.findByIdAndUpdate(
-            userId, // Solo puede actualizar su propia cuenta
+            userId,
             { pcSpecs },
             { new: true, runValidators: true }
         ).select('-password');
@@ -203,7 +207,7 @@ exports.updateSpecs = async (req, res, next) => {
             throw err;
         }
 
-        // INVALIDAR CACHÉ de análisis en catalog-service
+        // Invalidar caché de análisis
         try {
             const mongoose = require('mongoose');
             const AnalysisCacheSchema = new mongoose.Schema({
@@ -214,15 +218,11 @@ exports.updateSpecs = async (req, res, next) => {
                 analysis: Object,
                 createdAt: Date
             });
-            
             const AnalysisCache = mongoose.models.AnalysisCache || 
                                   mongoose.model('AnalysisCache', AnalysisCacheSchema);
-            
-            const deleteResult = await AnalysisCache.deleteMany({ userId: userId.toString() });
-            console.log(`🗑️ Caché invalidado: ${deleteResult.deletedCount} análisis eliminados para usuario ${updatedUser.username}`);
+            await AnalysisCache.deleteMany({ userId: userId.toString() });
         } catch (cacheError) {
-            // No detener el proceso si falla el caché, solo logear
-            console.error('⚠️ Error invalidando caché (no crítico):', cacheError.message);
+            console.error('⚠️ Error invalidando caché:', cacheError.message);
         }
 
         res.json({
@@ -238,17 +238,70 @@ exports.updateSpecs = async (req, res, next) => {
         });
 
     } catch (error) {
-        // Manejo de errores específicos
         if (error.errors) {
-            // Errores de validación custom
             return res.status(error.status || 400).json({
                 success: false,
                 message: error.message,
                 errors: error.errors
             });
         }
-        
-        // Otros errores
+        next(error);
+    }
+};
+
+// @desc    Cerrar sesión en el dispositivo actual
+exports.logout = async (req, res, next) => {
+    try {
+        await Session.findOneAndDelete({ token: req.user.token });
+
+        res.json({
+            success: true,
+            message: 'Sesión cerrada exitosamente en este dispositivo'
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// @desc    Cerrar sesión en TODOS los dispositivos
+exports.logoutAll = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        await Session.deleteMany({ userId });
+
+        res.json({
+            success: true,
+            message: 'Se han cerrado todas las sesiones activas'
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// @desc    Cambiar contraseña e invalidar sesiones
+exports.changePassword = async (req, res, next) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        const user = await User.findById(req.user.id);
+
+        if (!user || !(await bcrypt.compare(currentPassword, user.password))) {
+            const err = new Error('La contraseña actual es incorrecta');
+            err.status = 401;
+            throw err;
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(newPassword, salt);
+        await user.save();
+
+        // REQUISITO: Invalidar todas las sesiones al cambiar contraseña
+        await Session.deleteMany({ userId: user._id });
+
+        res.json({
+            success: true,
+            message: 'Contraseña actualizada. Se han invalidado todas las sesiones por seguridad.'
+        });
+    } catch (error) {
         next(error);
     }
 };

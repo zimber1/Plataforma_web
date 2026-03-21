@@ -49,4 +49,20 @@ router.get('/me', authMiddleware, async (req, res, next) => {
 // @desc    Actualizar specs de PC del usuario
 router.put('/specs', authMiddleware, authController.updateSpecs);
 
+// @route   POST /api/auth/logout
+// @desc    Cerrar sesión en este dispositivo
+router.post('/logout', authMiddleware, authController.logout);
+
+// @route   POST /api/auth/logout-all
+// @desc    Cerrar sesión en todos los dispositivos
+router.post('/logout-all', authMiddleware, authController.logoutAll);
+
+// @route   PUT /api/auth/change-password
+// @desc    Cambiar contraseña (invalida todas las sesiones)
+router.put('/change-password', [
+    authMiddleware,
+    check('currentPassword', 'La contraseña actual es obligatoria').exists(),
+    check('newPassword', 'La nueva contraseña debe tener mínimo 6 caracteres').isLength({ min: 6 })
+], validate, authController.changePassword);
+
 module.exports = router;
