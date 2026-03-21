@@ -17,8 +17,8 @@ try {
 }
 
 // Service URLs should come from environment in production
-const USERS_SERVICE_URL = process.env.USERS_SERVICE_URL || 'http://localhost:3001';
-const CATALOG_SERVICE_URL = process.env.CATALOG_SERVICE_URL || 'http://localhost:3002';
+const USERS_SERVICE_URL = process.env.USERS_SERVICE_URL || 'http://localhost:3002';
+const CATALOG_SERVICE_URL = process.env.CATALOG_SERVICE_URL || 'http://localhost:3001';
 const REVIEWS_SERVICE_URL = process.env.REVIEWS_SERVICE_URL || 'http://localhost:3003';
 
 app.use(cors());
