@@ -16,17 +16,44 @@ try {
     logger = console;
 }
 
+// Safe logging functions
+const logInfo = (msg, obj = {}) => {
+    if (logger && typeof logger.info === 'function') {
+        logger.info(obj, msg);
+    } else {
+        console.log(msg, obj);
+    }
+};
+
+const logError = (msg, obj = {}) => {
+    if (logger && typeof logger.error === 'function') {
+        logger.error(obj, msg);
+    } else {
+        console.error(msg, obj);
+    }
+};
+
+const logWarn = (msg, obj = {}) => {
+    if (logger && typeof logger.warn === 'function') {
+        logger.warn(obj, msg);
+    } else {
+        console.warn(msg, obj);
+    }
+};
+
 // Service URLs should come from environment in production
 const USERS_SERVICE_URL = process.env.USERS_SERVICE_URL || 'http://localhost:3002';
 const CATALOG_SERVICE_URL = process.env.CATALOG_SERVICE_URL || 'http://localhost:3001';
 const REVIEWS_SERVICE_URL = process.env.REVIEWS_SERVICE_URL || 'http://localhost:3003';
+
+const REQUEST_TIMEOUT = parseInt(process.env.REQUEST_TIMEOUT || '5000', 10);
 
 app.use(cors());
 app.use(express.json());
 
 // Optional dev testing middleware: simulate latency and failures via env
 const SIM_LATENCY = parseInt(process.env.SIMULATE_LATENCY_MS || '0', 10);
-const SIM_FAIL_RATE = parseInt(process.env.SIMULATE_FAIL_RATE || '0', 10); // 0-100
+const SIM_FAIL_RATE = parseInt(process.env.SIMULATE_FAIL_RATE || '0', 10);
 if (SIM_LATENCY > 0 || SIM_FAIL_RATE > 0) {
     app.use(async (req, res, next) => {
         if (SIM_LATENCY > 0) {
@@ -35,7 +62,7 @@ if (SIM_LATENCY > 0 || SIM_FAIL_RATE > 0) {
         if (SIM_FAIL_RATE > 0) {
             const r = Math.random() * 100;
             if (r < SIM_FAIL_RATE) {
-                logger && logger.warn ? logger.warn({ path: req.path, r }, 'Simulated failure') : console.warn('Simulated failure', req.path);
+                logWarn('Simulated failure', { path: req.path, r });
                 return res.status(503).json({ success: false, msg: 'Simulated service unavailable (for testing)' });
             }
         }
@@ -43,28 +70,27 @@ if (SIM_LATENCY > 0 || SIM_FAIL_RATE > 0) {
     });
 }
 
-// Rate limiting general - bastante permisivo
+// Rate limiting general
 const generalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 500, // máximo 500 requests por IP cada 15 minutos
+  windowMs: 15 * 60 * 1000,
+  max: 500,
   message: 'Demasiadas solicitudes desde esta IP, intenta más tarde.'
 });
 
-// Rate limiting para autenticación - evita fuerza bruta pero permite varios intentos legítimos
+// Rate limiting para autenticación
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 20, // máximo 20 intentos cada 15 minutos
+  windowMs: 15 * 60 * 1000,
+  max: 20,
   message: 'Demasiados intentos de autenticación, intenta más tarde.'
 });
 
-// Rate limiting para búsquedas/autocompletado - permisivo para uso normal
+// Rate limiting para búsquedas
 const searchLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minuto
-  max: 60, // máximo 60 búsquedas por minuto
+  windowMs: 60 * 1000,
+  max: 60,
   message: 'Demasiadas búsquedas, intenta más tarde.'
 });
 
-// Aplicar limitador general a todas las rutas
 app.use(generalLimiter);
 
 // --- USERS SERVICE ---
@@ -72,12 +98,13 @@ app.use(generalLimiter);
 // 1. REGISTRO
 app.post('/api/auth/register', authLimiter, async (req, res) => {
     try {
-        const response = await axios.post(`${USERS_SERVICE_URL}/api/auth/register`, req.body);
+        const response = await axios.post(`${USERS_SERVICE_URL}/api/auth/register`, req.body, { timeout: REQUEST_TIMEOUT });
         res.status(response.status).json(response.data);
     } catch (error) {
         if (error.response) {
             res.status(error.response.status).json(error.response.data);
         } else {
+            logError('Error en /api/auth/register', { message: error.message });
             res.status(500).json({ msg: 'Error de conexión con Users Service' });
         }
     }
@@ -86,60 +113,59 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
 // 2. LOGIN
 app.post('/api/auth/login', authLimiter, async (req, res) => {
     try {
-        const response = await axios.post(`${USERS_SERVICE_URL}/api/auth/login`, req.body);
+        const response = await axios.post(`${USERS_SERVICE_URL}/api/auth/login`, req.body, { timeout: REQUEST_TIMEOUT });
         res.status(response.status).json(response.data);
     } catch (error) {
         if (error.response) {
             res.status(error.response.status).json(error.response.data);
         } else {
+            logError('Error en /api/auth/login', { message: error.message });
             res.status(500).json({ msg: 'Error de conexión con Users Service' });
         }
     }
 });
 
-// 3. PERFIL (/me) - Aquí está la clave
+// 3. PERFIL (/me)
 app.get('/api/auth/me', async (req, res) => {
     try {
-        // Extraemos explícitamente el token del request original
         const authHeader = req.headers['authorization'];
-        
-        logger.info({ hasAuth: !!authHeader }, 'Token recibido en Gateway');
+        logInfo('Token recibido en Gateway', { hasAuth: !!authHeader });
 
         const response = await axios.get(`${USERS_SERVICE_URL}/api/auth/me`, {
             headers: {
-                // Lo pasamos manualmente al microservicio
                 'Authorization': authHeader 
-            }
+            },
+            timeout: REQUEST_TIMEOUT
         });
         res.status(response.status).json(response.data);
     } catch (error) {
         if (error.response) {
-            // El microservicio respondió (ej: 401, 404, 500)
             res.status(error.response.status).json(error.response.data);
         } else {
-            // Error de red o timeout
-            logger.error({ err: error.message }, 'Error Gateway -> Users');
+            logError('Error Gateway -> Users en /api/auth/me', { err: error.message });
             res.status(500).json({ msg: 'Error de conexión con Users Service' });
         }
     }
 });
 
-// Búsqueda de hardware con rate limiting
+// Búsqueda de hardware - CORREGIDO: Ahora apunta a CATALOG_SERVICE_URL
 app.get('/api/hardware/search', searchLimiter, async (req, res) => {
     try {
-        const url = `${USERS_SERVICE_URL}/api/hardware/search`;
+        const url = `${CATALOG_SERVICE_URL}/api/hardware/search`;
         const response = await axios({
             method: 'get',
             url,
             params: req.query,
-            headers: req.headers.authorization ? { 'Authorization': req.headers.authorization } : {}
+            headers: req.headers.authorization ? { 'Authorization': req.headers.authorization } : {},
+            timeout: REQUEST_TIMEOUT
         });
         res.status(response.status).json(response.data);
     } catch (error) {
         if (error.response) {
             res.status(error.response.status).json(error.response.data);
         } else {
-            res.status(500).json({ msg: 'Error de conexión con Users Service' });
+            logError('Error en /api/hardware/search', { message: error.message });
+            res.status(500).json({ msg: 'Error de conexión con Catalog Service' });
         }
     }
 });
@@ -150,7 +176,6 @@ app.use('/api/games', async (req, res) => {
         const url = `${CATALOG_SERVICE_URL}${req.originalUrl}`;
         const method = req.method.toLowerCase();
         
-        // Pasamos Authorization si existe
         const headers = {};
         if (req.headers.authorization) headers['Authorization'] = req.headers.authorization;
 
@@ -159,13 +184,15 @@ app.use('/api/games', async (req, res) => {
             url,
             data: req.method !== 'GET' ? req.body : undefined,
             params: req.query,
-            headers: headers
+            headers: headers,
+            timeout: REQUEST_TIMEOUT
         });
         res.status(response.status).json(response.data);
     } catch (error) {
         if (error.response) {
             res.status(error.response.status).json(error.response.data);
         } else {
+            logError('Error en /api/games', { message: error.message });
             res.status(500).json({ success: false, msg: 'Error en el gateway de catálogo' });
         }
     }
@@ -174,7 +201,6 @@ app.use('/api/games', async (req, res) => {
 // --- REVIEWS SERVICE ---
 app.use('/api/reviews', async (req, res) => {
     try {
-        // Redirigir a localhost:3003
         const url = `${REVIEWS_SERVICE_URL}${req.originalUrl}`;
         const method = req.method.toLowerCase();
 
@@ -186,13 +212,15 @@ app.use('/api/reviews', async (req, res) => {
             url,
             data: req.method !== 'GET' ? req.body : undefined,
             params: req.query,
-            headers: headers
+            headers: headers,
+            timeout: REQUEST_TIMEOUT
         });
         res.status(response.status).json(response.data);
     } catch (error) {
         if (error.response) {
             res.status(error.response.status).json(error.response.data);
         } else {
+            logError('Error en /api/reviews', { message: error.message });
             res.status(500).json({ success: false, msg: 'Error en el gateway de reviews' });
         }
     }
@@ -206,13 +234,15 @@ app.put('/api/auth/specs', async (req, res) => {
         const response = await axios.put(`${USERS_SERVICE_URL}/api/auth/specs`, req.body, {
             headers: {
                 'Authorization': authHeader 
-            }
+            },
+            timeout: REQUEST_TIMEOUT
         });
         res.status(response.status).json(response.data);
     } catch (error) {
         if (error.response) {
             res.status(error.response.status).json(error.response.data);
         } else {
+            logError('Error en /api/auth/specs', { message: error.message });
             res.status(500).json({ msg: 'Error de conexión con Users Service' });
         }
     }
@@ -223,13 +253,15 @@ app.post('/api/auth/logout', async (req, res) => {
     try {
         const authHeader = req.headers['authorization'];
         const response = await axios.post(`${USERS_SERVICE_URL}/api/auth/logout`, {}, {
-            headers: { 'Authorization': authHeader }
+            headers: { 'Authorization': authHeader },
+            timeout: REQUEST_TIMEOUT
         });
         res.status(response.status).json(response.data);
     } catch (error) {
         if (error.response) {
             res.status(error.response.status).json(error.response.data);
         } else {
+            logError('Error en /api/auth/logout', { message: error.message });
             res.status(500).json({ msg: 'Error de conexión con Users Service' });
         }
     }
@@ -240,13 +272,15 @@ app.post('/api/auth/logout-all', async (req, res) => {
     try {
         const authHeader = req.headers['authorization'];
         const response = await axios.post(`${USERS_SERVICE_URL}/api/auth/logout-all`, {}, {
-            headers: { 'Authorization': authHeader }
+            headers: { 'Authorization': authHeader },
+            timeout: REQUEST_TIMEOUT
         });
         res.status(response.status).json(response.data);
     } catch (error) {
         if (error.response) {
             res.status(error.response.status).json(error.response.data);
         } else {
+            logError('Error en /api/auth/logout-all', { message: error.message });
             res.status(500).json({ msg: 'Error de conexión con Users Service' });
         }
     }
@@ -257,13 +291,15 @@ app.put('/api/auth/change-password', async (req, res) => {
     try {
         const authHeader = req.headers['authorization'];
         const response = await axios.put(`${USERS_SERVICE_URL}/api/auth/change-password`, req.body, {
-            headers: { 'Authorization': authHeader }
+            headers: { 'Authorization': authHeader },
+            timeout: REQUEST_TIMEOUT
         });
         res.status(response.status).json(response.data);
     } catch (error) {
         if (error.response) {
             res.status(error.response.status).json(error.response.data);
         } else {
+            logError('Error en /api/auth/change-password', { message: error.message });
             res.status(500).json({ msg: 'Error de conexión con Users Service' });
         }
     }
@@ -272,7 +308,7 @@ app.put('/api/auth/change-password', async (req, res) => {
 // Middleware global de manejo de errores
 app.use(errorHandler);
 
-// Minimal health endpoint — returns gateway status and optional service checks
+// Health endpoint
 app.get('/health', async (req, res) => {
     const status = { status: 'ok', timestamp: new Date().toISOString(), services: {} };
     const checkService = async (name, url) => {
@@ -284,7 +320,6 @@ app.get('/health', async (req, res) => {
         }
     };
 
-    // attempt checks but don't fail gateway if services missing
     await Promise.all([
         checkService('users', USERS_SERVICE_URL).catch(() => {}),
         checkService('catalog', CATALOG_SERVICE_URL).catch(() => {}),
@@ -295,5 +330,5 @@ app.get('/health', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-    logger.info({ port: PORT }, 'API Gateway corriendo');
+    logInfo('API Gateway corriendo', { port: PORT });
 });
