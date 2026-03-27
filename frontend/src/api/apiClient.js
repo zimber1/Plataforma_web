@@ -9,7 +9,17 @@
  *   - Errores HTTP con payload del servidor
  */
 
-export const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+let apiBaseFromEnv = 'http://localhost:3000';
+try {
+  // @ts-ignore
+  if (import.meta && import.meta.env && import.meta.env.VITE_API_URL) {
+    apiBaseFromEnv = import.meta.env.VITE_API_URL;
+  }
+} catch (e) {
+  // En entornos de test (Jest/Node) import.meta puede fallar
+}
+
+export const API_BASE = apiBaseFromEnv;
 
 // ---------- helpers internos ----------
 
