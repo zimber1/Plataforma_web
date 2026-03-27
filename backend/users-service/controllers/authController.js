@@ -5,6 +5,8 @@ const Ram = require('../models/Ram');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Session = require('../models/Session');
+const crypto = require('crypto');
+
 
 // Generar Token JWT
 const generateToken = (user) => {
@@ -305,3 +307,43 @@ exports.changePassword = async (req, res, next) => {
         next(error);
     }
 };
+
+exports.forgotPassword = async (req, res, next) => {
+    try {
+        const user = await User.findOne({ email: req.body.email });
+        if (user) {
+            const resetToken = crypto.randomBytes(32).toString('hex');
+            user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+            user.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
+            await user.save({ validateBeforeSave: false });
+            if (process.env.NODE_ENV === 'test') { console.log('TEST_TOKEN:', resetToken); }
+        }
+        res.status(200).json({ success: true, message: 'Si el correo está registrado, recibirás un enlace' });
+    } catch (error) {
+        next(error);
+    }
+};
+
+exports.resetPassword = async (req, res, next) => {
+    try {
+        const resetPasswordToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
+        const user = await User.findOne({
+            resetPasswordToken,
+            resetPasswordExpire: { $gt: Date.now() }
+        });
+        if (!user) {
+            const err = new Error('Token inválido o expirado');
+            err.status = 400;
+            throw err;
+        }
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(req.body.password, salt);
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpire = undefined;
+        await user.save();
+        await Session.deleteMany({ userId: user._id });
+        res.status(200).json({ success: true, message: 'Contraseña actualizada correctamente' });
+    } catch (error) {
+        next(error);
+    }
+};

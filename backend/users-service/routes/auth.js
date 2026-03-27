@@ -65,4 +65,16 @@ router.put('/change-password', [
     check('newPassword', 'La nueva contraseña debe tener mínimo 6 caracteres').isLength({ min: 6 })
 ], validate, authController.changePassword);
 
+// @route   POST /api/auth/forgot-password
+// @desc    Solicitar enlace de recuperación
+router.post('/forgot-password', [
+    check('email', 'Agrega un email válido').isEmail()
+], validate, authController.forgotPassword);
+
+// @route   PUT /api/auth/reset-password/:token
+// @desc    Restablecer contraseña usando token
+router.put('/reset-password/:token', [
+    check('password', 'La nueva contraseña debe tener mínimo 6 caracteres').isLength({ min: 6 })
+], validate, authController.resetPassword);
+
 module.exports = router;
