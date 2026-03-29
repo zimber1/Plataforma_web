@@ -9,7 +9,7 @@
  *   - Errores HTTP con payload del servidor
  */
 
-export const API_BASE = import.meta.env.VITE_API_URL || 'http://159.54.128.214:3000';
+export const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 // ---------- helpers internos ----------
 
@@ -42,6 +42,7 @@ async function parseJsonSafe(res) {
  * @param {object}  options.params   - Query params como objeto  {q:'mario', limit:10}
  * @param {number}  options.timeout  - Timeout en ms (default: 15000)
  * @param {boolean} options.auth     - Si true (default) agrega el JWT si existe
+ * @param {boolean} options.catch401 - Si true (default) emite evento session_expired con error 401
  *
  * @returns {Promise<any>}  JSON del servidor
  * @throws  {Error}         Con propiedades .status y .payload
@@ -54,6 +55,7 @@ export async function apiClient(path, options = {}) {
     params,
     timeout = 15000,
     auth = true,
+    catch401 = true,
   } = options;
 
   // Construir URL con query params si existen
@@ -108,7 +110,7 @@ export async function apiClient(path, options = {}) {
       err.payload = data;
       
       // Si el token es inválido o expiró
-      if (res.status === 401) {
+      if (res.status === 401 && catch401) {
         window.dispatchEvent(new Event('session_expired'));
       }
       

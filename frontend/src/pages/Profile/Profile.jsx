@@ -182,7 +182,7 @@ function PasswordField({ id, label, value, onChange, onBlur, error, show, onTogg
 
 export default function Profile() {
     const navigate = useNavigate()
-    const { user, isLoggedIn, loading: authLoading, updateUserSpecs } = useAuth()
+    const { user, isLoggedIn, loading: authLoading, updateUserSpecs, logoutUser } = useAuth()
 
     // ── specs ──────────────────────────────────────────────────────────────────
     const [cpu,        setCpu]        = useState('')
@@ -272,17 +272,30 @@ export default function Profile() {
         setSavingPw(true)
         setPwMsg(null)
         try {
-            // PUT /api/auth/password — endpoint que necesita el backend
-            await apiClient('/api/auth/password', {
+            // PUT /api/auth/change-password — endpoint que necesita el backend
+            // catch401: false evita que el frontend invalide la sesión si falla la validación de la contraseña actual (evitando echar al usuario)
+            await apiClient('/api/auth/change-password', {
                 method: 'PUT',
                 body: { currentPassword: pwForm.current, newPassword: pwForm.next },
+                catch401: false 
             })
-            setPwMsg({ type: 'success', text: 'Contraseña actualizada correctamente.' })
+            setPwMsg({ type: 'success', text: 'Contraseña actualizada correctamente. Serás redirigido al inicio de sesión.' })
             setPwForm({ current: '', next: '', confirm: '' })
             setPwTouched({})
             setShowPwSection(false)
+            setTimeout(() => {
+                logoutUser()
+            }, 2500)
         } catch (err) {
-            setPwMsg({ type: 'error', text: err.message || 'Error al cambiar la contraseña.' })
+            // Manejo de errores genérico para evitar enumeración y proteger la cuenta
+            let errorMessage = 'No se pudo actualizar la contraseña. Verifica que tus datos sean correctos.'
+            
+            // Reusar validaciones de forma/body si vienen de express-validator, ya que esas sí orientan al usuario sobre su propio input
+            if (err.payload?.errors && err.payload.errors.length > 0) {
+                errorMessage = err.payload.errors.map(e => e.msg).join(', ')
+            }
+            
+            setPwMsg({ type: 'error', text: errorMessage })
         } finally {
             setSavingPw(false)
         }
@@ -414,7 +427,7 @@ export default function Profile() {
                             style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}
                         >
                             <Lock size={16} aria-hidden="true" />
-                            Cambiar contraseña FALTA IMPLEMENTAR EN BACKEND
+                            Cambiar contraseña
                         </button>
                     ) : (
                         <div className="profile-specs-form">
