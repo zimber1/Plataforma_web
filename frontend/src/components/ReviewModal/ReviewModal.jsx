@@ -1,16 +1,37 @@
-import React, { useState } from 'react'
-import { Star, Loader } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { Star, Loader, Palette, Cpu, AlertCircle, Send } from 'lucide-react'
 import Modal from '../Common/Modal'
 import { upsertReview } from '../../api/reviewsService'
 import { useAuth } from '../../context/AuthContext'
 
-export default function ReviewModal({ isOpen, onClose, gameId, onPublished }) {
+/**
+ * ReviewModal - Modal para crear/editar una resena.
+ * 
+ * @param {boolean}  isOpen       - Si el modal esta abierto
+ * @param {function} onClose      - Callback al cerrar
+ * @param {number}   gameId       - ID del juego
+ * @param {function} onPublished  - Callback tras publicar exitosamente
+ * @param {string}   defaultType  - Tipo predefinido: 'artistic' o 'technical'
+ */
+export default function ReviewModal({ isOpen, onClose, gameId, onPublished, defaultType = 'artistic' }) {
     const { isLoggedIn } = useAuth()
-    const [reviewType, setReviewType] = useState('artistic')
+    const [reviewType, setReviewType] = useState(defaultType)
     const [rating, setRating] = useState(0)
+    const [hoverRating, setHoverRating] = useState(0)
     const [comment, setComment] = useState('')
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState(null)
+
+    // Sincronizar el tipo de resena cuando cambia el defaultType o se abre el modal
+    useEffect(() => {
+        if (isOpen) {
+            setReviewType(defaultType)
+            setRating(0)
+            setHoverRating(0)
+            setComment('')
+            setError(null)
+        }
+    }, [isOpen, defaultType])
 
     const handlePublish = async () => {
         if (!isLoggedIn) {
@@ -18,7 +39,7 @@ export default function ReviewModal({ isOpen, onClose, gameId, onPublished }) {
             return
         }
         if (rating === 0) {
-            setError('Selecciona una puntuación')
+            setError('Selecciona una puntuación para continuar')
             return
         }
 
@@ -33,11 +54,6 @@ export default function ReviewModal({ isOpen, onClose, gameId, onPublished }) {
                 comment: comment.trim(),
             })
 
-            // Resetear form
-            setRating(0)
-            setComment('')
-            setReviewType('artistic')
-
             // Notificar al padre
             if (onPublished) onPublished()
             else onClose()
@@ -49,11 +65,13 @@ export default function ReviewModal({ isOpen, onClose, gameId, onPublished }) {
     }
 
     const handleClose = () => {
-        setError(null)
-        setRating(0)
-        setComment('')
         onClose()
     }
+
+    const charCount = comment.length
+    const maxChars = 1000
+    const charPercentage = (charCount / maxChars) * 100
+    const isNearLimit = maxChars - charCount <= 50
 
     return (
         <Modal
@@ -61,100 +79,128 @@ export default function ReviewModal({ isOpen, onClose, gameId, onPublished }) {
             onClose={handleClose}
             title="Crear nueva reseña"
         >
-            {error && (
-                <div role="alert" style={{ padding: '10px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '8px', color: '#ef4444', fontSize: '13px', textAlign: 'center' }}>
-                    {error}
-                </div>
-            )}
+            <div className="modal-inner-content">
+                {error && (
+                    <div className="modal-error-alert" role="alert">
+                        <AlertCircle size={18} strokeWidth={2.5} />
+                        <span>{error}</span>
+                    </div>
+                )}
 
-            <div className="modal-row" role="group" aria-labelledby="review-type-label">
-                <span id="review-type-label">Tipo de reseña:</span>
-                <div className="type-buttons">
-                    <button
-                        className={reviewType === 'artistic' ? 'type-btn active' : 'type-btn'}
-                        onClick={() => setReviewType('artistic')}
-                        aria-pressed={reviewType === 'artistic'}
-                        disabled={loading}
-                    >
-                        Artística
-                    </button>
-                    <button
-                        className={reviewType === 'technical' ? 'type-btn active' : 'type-btn'}
-                        onClick={() => setReviewType('technical')}
-                        aria-pressed={reviewType === 'technical'}
-                        disabled={loading}
-                    >
-                        Técnica
-                    </button>
-                </div>
-            </div>
-
-            <div className="modal-row" role="group" aria-labelledby="rating-label">
-                <span id="rating-label">Puntuación:</span>
-                <div
-                    className="star-rating"
-                    role="radiogroup"
-                    aria-label="Puntuación en estrellas"
-                >
-                    {[1, 2, 3, 4, 5].map((s) => (
+                <div className="modal-row" role="group" aria-labelledby="review-type-label">
+                    <span id="review-type-label" className="modal-field-label">¿Qué aspecto del juego deseas evaluar?</span>
+                    <div className="type-buttons">
                         <button
-                            key={s}
-                            type="button"
-                            className="star-btn"
-                            onClick={() => setRating(s)}
-                            aria-label={`${s} estrellas`}
-                            aria-checked={s === rating}
-                            role="radio"
+                            className={`type-btn ${reviewType === 'artistic' ? 'active' : ''}`}
+                            onClick={() => setReviewType('artistic')}
+                            aria-pressed={reviewType === 'artistic'}
                             disabled={loading}
-                            style={{
-                                background: 'none',
-                                border: 'none',
-                                padding: 0,
-                                cursor: loading ? 'not-allowed' : 'pointer',
-                                display: 'flex',
-                                alignItems: 'center'
-                            }}
                         >
-                            <Star
-                                size={24}
-                                fill={s <= rating ? "var(--primary-purple)" : "transparent"}
-                                stroke="var(--primary-purple)"
-                                aria-hidden="true"
-                            />
+                            <Palette size={18} />
+                            Artística
                         </button>
-                    ))}
+                        <button
+                            className={`type-btn ${reviewType === 'technical' ? 'active' : ''}`}
+                            onClick={() => setReviewType('technical')}
+                            aria-pressed={reviewType === 'technical'}
+                            disabled={loading}
+                        >
+                            <Cpu size={18} />
+                            Técnica
+                        </button>
+                    </div>
                 </div>
-            </div>
 
-            <div className="modal-row">
-                <label htmlFor="review-text" className="sr-only">Escribe aquí tu reseña</label>
-                <textarea
-                    id="review-text"
-                    className="review-textarea"
-                    placeholder="Escribe aquí tu reseña (opcional, máx. 1000 caracteres)..."
-                    aria-required="false"
-                    maxLength={1000}
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                    disabled={loading}
-                ></textarea>
-            </div>
+                <div className="modal-row" role="group" aria-labelledby="rating-label">
+                    <span id="rating-label" className="modal-field-label">Tu puntuación</span>
+                    <div
+                        className="star-rating"
+                        role="radiogroup"
+                        aria-label="Puntuacion en estrellas"
+                        onMouseLeave={() => setHoverRating(0)}
+                    >
+                        {[1, 2, 3, 4, 5].map((s) => (
+                            <button
+                                key={s}
+                                type="button"
+                                className="star-btn"
+                                onClick={() => setRating(s)}
+                                onMouseEnter={() => setHoverRating(s)}
+                                aria-label={`${s} estrellas`}
+                                aria-checked={s === rating}
+                                role="radio"
+                                disabled={loading}
+                                style={{
+                                    transform: hoverRating === s ? 'scale(1.15)' : 'scale(1)'
+                                }}
+                            >
+                                <Star
+                                    size={30}
+                                    fill={s <= (hoverRating || rating) ? "var(--primary-purple)" : "transparent"}
+                                    stroke={s <= (hoverRating || rating) ? "var(--primary-purple)" : "var(--text-secondary)"}
+                                    strokeWidth={s <= (hoverRating || rating) ? 0 : 1.5}
+                                    aria-hidden="true"
+                                    style={{ transition: 'all 0.2s' }}
+                                />
+                            </button>
+                        ))}
+                    </div>
+                </div>
 
-            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', textAlign: 'right' }}>
-                {comment.length}/1000
-            </div>
+                <div className="modal-row">
+                    <label htmlFor="review-text" className="modal-field-label">
+                        Cuéntanos más sobre tu experiencia (Opcional)
+                    </label>
+                    <textarea
+                        id="review-text"
+                        className="review-textarea"
+                        placeholder="Las reseñas detalladas ayudan mucho a otros jugadores. ¿Qué te gustó más? ¿Qué podría mejorar?"
+                        aria-required="false"
+                        maxLength={maxChars}
+                        value={comment}
+                        onChange={(e) => setComment(e.target.value)}
+                        disabled={loading}
+                    ></textarea>
+                    
+                    <div className="char-counter-container">
+                        <div className="char-progress-bar">
+                            <div className="char-progress-fill" style={{
+                                width: `${charPercentage}%`,
+                                background: isNearLimit ? '#ef4444' : 'var(--primary-purple)'
+                            }}></div>
+                        </div>
+                        <span className={`char-count-text ${isNearLimit ? 'near-limit' : ''}`}>
+                            {charCount} / {maxChars}
+                        </span>
+                    </div>
+                </div>
 
-            <div className="modal-actions">
-                <button className="cancel-btn" onClick={handleClose} disabled={loading}>Cancelar</button>
-                <button
-                    className="publish-btn"
-                    onClick={handlePublish}
-                    disabled={rating === 0 || loading}
-                    style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-                >
-                    {loading && <Loader size={14} style={{ animation: 'spin 1s linear infinite' }} />}
-                    {loading ? 'Publicando...' : 'Publicar reseña'}
-                </button>
+                <div className="modal-actions">
+                    <button 
+                        className="cancel-btn" 
+                        onClick={handleClose} 
+                        disabled={loading}
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        className="publish-btn"
+                        onClick={handlePublish}
+                        disabled={rating === 0 || loading}
+                    >
+                        {loading ? (
+                            <>
+                                <Loader size={16} style={{ animation: 'spin 1s linear infinite' }} />
+                                Publicando...
+                            </>
+                        ) : (
+                            <>
+                                <Send size={16} />
+                                Publicar reseña
+                            </>
+                        )}
+                    </button>
+                </div>
             </div>
         </Modal>
     )

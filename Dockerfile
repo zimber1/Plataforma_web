@@ -6,8 +6,8 @@ WORKDIR /app/frontend
 COPY frontend/package*.json ./
 COPY frontend/package-lock*.json ./
 
-# Install dependencies (allow legacy peer deps resolution introduced for testing/dev deps)
-RUN npm ci --legacy-peer-deps --no-audit --no-fund
+# Install dependencies
+RUN npm ci --no-audit --no-fund
 
 # Copy source and build
 COPY frontend/ .

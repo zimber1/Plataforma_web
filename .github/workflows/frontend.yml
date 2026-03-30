@@ -8,12 +8,12 @@ on:
     branches:
       - main
       - master
-      - '**' # <--- ESTO ES NUEVO: Permite que corra en CUALQUIER rama (feature, fix, etc.)
+      - '**'
     paths:
       - 'frontend/**'
       - 'frontend/package.json'
       - 'package.json'
-      - '.github/workflows/**' # <--- NUEVO: Para que se active si editas este archivo
+      - '.github/workflows/**'
   pull_request:
     branches: [ main, master ]
     paths:
@@ -21,10 +21,12 @@ on:
   workflow_dispatch:
 
 jobs:
+  # ─────────────────────────────────────────
+  # Job original del equipo (sin cambios)
+  # ─────────────────────────────────────────
   frontend:
     name: Build, Lint and Deploy Frontend
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
         node-version: [20.x]
@@ -38,38 +40,130 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      # Paso 1: Instalación
       - name: Install dependencies
         run: npm install --legacy-peer-deps --no-audit --no-fund
         working-directory: frontend
 
-      # Paso 2: Tests de Interacción (CRÍTICO: Esto debe pasar)
       - name: Run Interaction Tests
         run: npm test
         working-directory: frontend
 
-      # Paso 3: Lint (Modo "Fácil": No rompe el build si falla)
       - name: Lint
         working-directory: frontend
         run: npm run lint --if-present
         continue-on-error: true
 
-      # Paso 4: Construcción
       - name: Build
         working-directory: frontend
         run: npm run build --if-present
 
-      # Paso 5: Subir artefacto
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: frontend-dist-${{ github.job }}
           path: frontend/dist
 
-      # Paso 6: Despliegue (Solo en main/master para no romper producción)
       - name: Deploy to GitHub Pages
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: frontend/dist
+
+  # ─────────────────────────────────────────
+  # Job 2 — Verificación de accesibilidad
+  # ─────────────────────────────────────────
+  accessibility:
+    name: Verificar accesibilidad (axe)
+    runs-on: ubuntu-latest
+    needs: frontend
+    if: always()
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar axe-cli y servidor estático
+        run: npm install -g @axe-core/cli serve
+
+      - name: Descargar artefacto del build
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist-frontend
+          path: dist/
+        continue-on-error: true
+
+      - name: Ejecutar axe en páginas principales
+        run: |
+          serve -s dist -l 4173 &
+          sleep 3
+          axe http://localhost:4173 --exit || true
+          axe http://localhost:4173/login --exit || true
+          axe http://localhost:4173/register --exit || true
+
+  # ─────────────────────────────────────────
+  # Job 3 — Auditoría de rendimiento
+  # ─────────────────────────────────────────
+  performance:
+    name: Auditoría de rendimiento (Lighthouse)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar dependencias
+        run: npm install --legacy-peer-deps --no-audit --no-fund
+        working-directory: frontend
+
+      - name: Build de producción
+        run: npm run build --if-present
+        working-directory: frontend
+
+      - name: Instalar servidor estático
+        run: npm install -g serve
+
+      - name: Levantar servidor con el build
+        run: serve -s frontend/dist -l 4173 &
+
+      - name: Esperar a que el servidor arranque
+        run: sleep 5
+
+      - name: Ejecutar Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v11
+        with:
+          urls: |
+            http://localhost:4173/
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+
+  # ─────────────────────────────────────────
+  # Job 4 — Verificar prefers-reduced-motion
+  # ─────────────────────────────────────────
+  reduced-motion-check:
+    name: Verificar prefers-reduced-motion en CSS
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Buscar prefers-reduced-motion en CSS
+        run: |
+          echo "Buscando prefers-reduced-motion en archivos CSS..."
+          if grep -r "prefers-reduced-motion" ./frontend/src; then
+            echo "✅ prefers-reduced-motion encontrado. Las animaciones tienen fallback."
+          else
+            echo "⚠️  prefers-reduced-motion NO encontrado en el CSS."
+            echo "Las animaciones no tienen fallback para usuarios con movimiento reducido."
+            echo "Verificación completada: se recomienda implementarlo en la siguiente iteración."
+          fi

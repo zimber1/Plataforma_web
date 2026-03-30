@@ -15,7 +15,16 @@ export * as hardwareService from './hardwareService';
 
 // Re-exportar funciones más usadas directamente
 export { login, register, logout, getProfile, updateSpecs, isAuthenticated } from './authService';
-export { searchGames, getLatestGames, getTopRatedGames, getGameDetails, analyzeCompatibility, getIgdbImageUrl, getIgdbScreenshotUrl } from './gamesService';
+export {
+    searchGames,
+    getLatestGames,
+    getTopRatedGames,
+    getComingSoonGames,
+    getGameDetails,
+    analyzeCompatibility,
+    getIgdbImageUrl,
+    getIgdbScreenshotUrl,
+} from './gamesService';
 export { getGameReviews, upsertReview, deleteReview } from './reviewsService';
 export { searchHardware } from './hardwareService';
 
