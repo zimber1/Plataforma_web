@@ -176,12 +176,11 @@ jobs:
           docker compose logs --no-color --tail 200 || true
 
       - name: Run Playwright E2E against running stack
-        working-directory: frontend
+        working-directory: frontend/e2e
         env:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
         run: |
           npm install --legacy-peer-deps
-          cd e2e
           npm install --legacy-peer-deps
           npm run install-browsers
           npm test
