@@ -5,6 +5,8 @@ const OpenAI = require('openai');
 const rateLimit = require('express-rate-limit');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
+const authMiddleware = require('../middleware/authMiddleware');
+const roleMiddleware = require('../middleware/roleMiddleware');
 
 let accessToken = null;
 
@@ -515,6 +517,20 @@ router.post('/:id/analyze', ensureToken, extractUserIfAuthenticated, aiLimiter, 
             msg: 'Error al analizar compatibilidad' 
         });
     }
+});
+
+// 7. CREAR VIDEOJUEGO (SOLO ADMIN)
+router.post('/', authMiddleware, roleMiddleware('admin'), async (req, res) => {
+    // Aquí iría la lógica para crear un juego propio en su BD en lugar de IGDB
+    // Por el momento, respondemos simulando el éxito
+    res.status(201).json({ success: true, msg: 'Videojuego creado exitosamente (Simulado)' });
+});
+
+// 8. BORRAR VIDEOJUEGO (SOLO ADMIN)
+router.delete('/:id', authMiddleware, roleMiddleware('admin'), async (req, res) => {
+    const { id } = req.params;
+    // Aquí iría la lógica para borrar el juego de la base de datos
+    res.json({ success: true, msg: `Videojuego con ID ${id} eliminado exitosamente (Simulado)` });
 });
 
 module.exports = router;
