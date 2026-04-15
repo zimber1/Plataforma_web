@@ -2,9 +2,9 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import {
     Star, Settings, CheckCircle, XCircle, AlertCircle,
-    User, MessageSquare, Loader, Cpu, Monitor, HardDrive, ChevronDown,
+    User, MessageSquare, Loader, Cpu, Monitor, HardDrive, ChevronDown, Trash2, MoreVertical
 } from 'lucide-react'
-import { getGameDetails, analyzeCompatibility, getIgdbImageUrl, getIgdbScreenshotUrl, getGameReviews } from '../../api'
+import { getGameDetails, analyzeCompatibility, getIgdbImageUrl, getIgdbScreenshotUrl, getGameReviews, deleteReview } from '../../api'
 import { useAuth } from '../../context/AuthContext'
 import Navbar from '../../components/Navbar/Navbar'
 import ReviewModal from '../../components/ReviewModal/ReviewModal'
@@ -61,17 +61,76 @@ function ReviewSpecs({ pcSpecs }) {
 
 // ─── ReviewCard ───────────────────────────────────────────────────────────────
 
-function ReviewCard({ review, currentUserId }) {
+function ReviewCard({ review, currentUserId, currentUserRole, onDelete }) {
     const isOwn = currentUserId && review.userId === currentUserId
+    const canDelete = isOwn || currentUserRole === 'admin'
     const date = new Date(review.createdAt).toLocaleDateString('es-MX', {
         day: 'numeric', month: 'short', year: 'numeric',
     })
 
+    const [menuOpen, setMenuOpen] = useState(false)
+    const menuRef = useRef(null)
+
+    // Cerrar menú al hacer clic fuera
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (menuRef.current && !menuRef.current.contains(e.target)) {
+                setMenuOpen(false)
+            }
+        }
+        if (menuOpen) document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [menuOpen])
+
     return (
         <article
             className="review-card"
+            style={{ position: 'relative' }}
             aria-label={`Reseña de ${review.username}, ${review.rating} de 5 estrellas`}
         >
+            {canDelete && (
+                <div style={{ position: 'absolute', top: '16px', right: '16px' }} ref={menuRef}>
+                    <button
+                        onClick={() => setMenuOpen(!menuOpen)}
+                        aria-label="Opciones de reseña"
+                        aria-expanded={menuOpen}
+                        style={{
+                            background: 'transparent', border: 'none', cursor: 'pointer',
+                            color: 'var(--text-secondary, #6b7280)', padding: '4px',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            borderRadius: '50%'
+                        }}
+                    >
+                        <MoreVertical size={18} />
+                    </button>
+                    {menuOpen && (
+                        <div style={{
+                            position: 'absolute', top: '100%', right: 0, marginTop: '4px',
+                            background: 'var(--card-bg, #1e1e1e)', border: '1px solid var(--search-bg, #2a2a2a)', borderRadius: '8px',
+                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)', zIndex: 10,
+                            minWidth: '120px', padding: '4px'
+                        }}>
+                            <button
+                                onClick={() => {
+                                    setMenuOpen(false)
+                                    onDelete(review._id)
+                                }}
+                                style={{
+                                    display: 'flex', alignItems: 'center', gap: '8px',
+                                    width: '100%', padding: '8px 12px', border: 'none',
+                                    background: 'transparent', color: '#ef4444',
+                                    cursor: 'pointer', fontSize: '13px', borderRadius: '4px',
+                                    textAlign: 'left', transition: 'background 0.2s'
+                                }}
+                                onMouseOver={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
+                                onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+                            >
+                                <Trash2 size={14} /> Eliminar
+                            </button>
+                        </div>
+                    )}
+                </div>
+            )}
             <div className="review-user">
                 <div
                     aria-hidden="true"
@@ -303,7 +362,19 @@ export default function GameDetails() {
     const steamReqs      = game.requirements?.pc_requirements
     const compatibility  = game.compatibility
     const currentUserId  = user?.id || user?._id
+    const currentUserRole = user?.role
     const filteredReviews = reviews.filter(r => r.type === activeTab)
+
+    const handleDeleteReview = async (reviewId) => {
+        if (!window.confirm('¿Estás seguro de que quieres eliminar esta reseña? No podrás deshacer esta acción.')) return
+        try {
+            await deleteReview(reviewId)
+            setReviews(prev => prev.filter(r => r._id !== reviewId))
+            // Actualizar estadisticas si es necesario restando la review, pero con recargar la página sería suficiente o quitandola del DOM
+        } catch (err) {
+            alert(err.message || 'Ocurrió un error al eliminar la reseña.')
+        }
+    }
 
     // ── render ─────────────────────────────────────────────────────────────────
 
@@ -591,7 +662,12 @@ export default function GameDetails() {
                                 <div className="reviews-grid" role="list" aria-label={`Reseñas ${activeTab === 'artistic' ? 'artísticas' : 'técnicas'}`}>
                                     {filteredReviews.map((review) => (
                                         <div key={review._id} role="listitem">
-                                            <ReviewCard review={review} currentUserId={currentUserId} />
+                                            <ReviewCard 
+                                                review={review} 
+                                                currentUserId={currentUserId} 
+                                                currentUserRole={currentUserRole}
+                                                onDelete={handleDeleteReview}
+                                            />
                                         </div>
                                     ))}
                                 </div>

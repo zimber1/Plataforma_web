@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
     User, Cpu, Monitor, HardDrive, Save, Loader,
-    ArrowLeft, Pencil, X, Lock, Eye, EyeOff, CheckCircle,
+    ArrowLeft, Pencil, X, Lock, Eye, EyeOff, CheckCircle, Shield
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { apiClient } from '../../api'
@@ -352,7 +352,24 @@ export default function Profile() {
                         <User size={56} strokeWidth={1.5} color="var(--primary-purple)" />
                     </div>
                     <div className="profile-info">
-                        <h2 id="info-title">{user.username}</h2>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                            <h2 id="info-title" style={{ margin: 0 }}>{user.username}</h2>
+                            {user.role === 'admin' && (
+                                <span
+                                    title="Rol de Administrador activo"
+                                    style={{
+                                        fontSize: '11px', padding: '3px 8px', borderRadius: '20px',
+                                        background: 'rgba(187, 134, 252, 0.15)',
+                                        color: 'var(--primary-purple)', fontWeight: 'bold',
+                                        textTransform: 'uppercase', letterSpacing: '0.5px',
+                                        display: 'inline-flex', alignItems: 'center', gap: '4px'
+                                    }}
+                                >
+                                    <Shield size={12} fill="var(--primary-purple)" stroke="var(--primary-purple)" aria-hidden="true" />
+                                    Admin
+                                </span>
+                            )}
+                        </div>
                         <p className="profile-email">{user.email}</p>
                         {joinDate && (
                             <p className="profile-date">Miembro desde: {joinDate}</p>
